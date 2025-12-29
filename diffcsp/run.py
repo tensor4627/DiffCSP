@@ -20,7 +20,8 @@ from pytorch_lightning.loggers import WandbLogger
 from diffcsp.common.utils import log_hyperparameters, PROJECT_ROOT
 
 import wandb
-
+import os
+os.environ["WANDB_DISABLED"] = "true"
 
 
 def build_callbacks(cfg: DictConfig) -> List[Callback]:
@@ -93,7 +94,6 @@ def run(cfg: DictConfig) -> None:
     datamodule: pl.LightningDataModule = hydra.utils.instantiate(
         cfg.data.datamodule, _recursive_=False
     )
-
     # Instantiate model
     hydra.utils.log.info(f"Instantiating <{cfg.model._target_}>")
     model: pl.LightningModule = hydra.utils.instantiate(
@@ -116,20 +116,20 @@ def run(cfg: DictConfig) -> None:
 
     # Logger instantiation/configuration
     wandb_logger = None
-    if "wandb" in cfg.logging:
-        hydra.utils.log.info("Instantiating <WandbLogger>")
-        wandb_config = cfg.logging.wandb
-        wandb_logger = WandbLogger(
-            **wandb_config,
-            settings=wandb.Settings(start_method="fork"),
-            tags=cfg.core.tags,
-        )
-        hydra.utils.log.info("W&B is now watching <{cfg.logging.wandb_watch.log}>!")
-        wandb_logger.watch(
-            model,
-            log=cfg.logging.wandb_watch.log,
-            log_freq=cfg.logging.wandb_watch.log_freq,
-        )
+    # if "wandb" in cfg.logging:
+    #     hydra.utils.log.info("Instantiating <WandbLogger>")
+    #     wandb_config = cfg.logging.wandb
+    #     wandb_logger = WandbLogger(
+    #         **wandb_config,
+    #         settings=wandb.Settings(start_method="fork"),
+    #         tags=cfg.core.tags,
+    #     )
+    #     hydra.utils.log.info("W&B is now watching <{cfg.logging.wandb_watch.log}>!")
+    #     wandb_logger.watch(
+    #         model,
+    #         log=cfg.logging.wandb_watch.log,
+    #         log_freq=cfg.logging.wandb_watch.log_freq,
+    #     )
 
     # Store the YaML config separately into the wandb dir
     yaml_conf: str = OmegaConf.to_yaml(cfg=cfg)
@@ -151,8 +151,8 @@ def run(cfg: DictConfig) -> None:
         callbacks=callbacks,
         deterministic=cfg.train.deterministic,
         check_val_every_n_epoch=cfg.logging.val_check_interval,
-        progress_bar_refresh_rate=cfg.logging.progress_bar_refresh_rate,
-        resume_from_checkpoint=ckpt,
+        # progress_bar_refresh_rate=cfg.logging.progress_bar_refresh_rate,
+        # resume_from_checkpoint=ckpt,
         **cfg.train.pl_trainer,
     )
 
