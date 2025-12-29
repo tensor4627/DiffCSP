@@ -11,4 +11,4 @@ max_neighbors: ${model.max_neighbors}
 cutoff: ${model.radius}
 ln: true
 ip: true
-predict_scalar: true
+pred_scalar: true

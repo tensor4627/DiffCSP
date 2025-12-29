@@ -86,11 +86,11 @@ def log_hyperparameters(
 
 
 # Load environment variables
-load_envs(".env")
+load_envs()
 
 # Set the cwd to the project root
-# PROJECT_ROOT: Path = Path(get_env("PROJECT_ROOT"))
-PROJECT_ROOT: Path = Path("/home/tensor/software/DiffCSP")
+PROJECT_ROOT: Path = Path(get_env("PROJECT_ROOT"))
+#PROJECT_ROOT: Path = Path("/home/tensor/software/DiffCSP")
 assert (
     PROJECT_ROOT.exists()
 ), "You must configure the PROJECT_ROOT environment variable in a .env file!"

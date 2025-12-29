@@ -1,4 +1,4 @@
-root_path: /home/tensor/software/DiffCSP/data/carbon_24
+root_path: ${oc.env:PROJECT_ROOT}/data/carbon_24
 prop: energy_per_atom
 num_targets: 1
 # prop: scaled_lattice
@@ -71,11 +71,11 @@ datamodule:
         preprocess_workers: ${data.preprocess_workers}
 
   num_workers:
-    train: 0
-    val: 0
-    test: 0
+    train: 8
+    val: 8
+    test: 8
 
   batch_size:
-    train: 4
-    val: 4
-    test: 4
+    train: 32
+    val: 32
+    test: 32
