@@ -724,11 +724,15 @@ class CSPEnergyMatching(BaseModule):
 
         output_dict = self(batch)
 
+        loss_lattice = output_dict['loss_lattice']
+        loss_coord = output_dict['loss_coord']
         loss = output_dict['loss']
 
 
         self.log_dict(
-            {'train_loss': loss},
+            {'train_loss': loss,
+            'lattice_loss': loss_lattice,
+            'coord_loss': loss_coord},
             on_step=True,
             on_epoch=True,
             prog_bar=True,
@@ -766,12 +770,15 @@ class CSPEnergyMatching(BaseModule):
 
     def compute_stats(self, output_dict, prefix):
 
+        loss_lattice = output_dict['loss_lattice']
+        loss_coord = output_dict['loss_coord']
         loss = output_dict['loss']
 
         log_dict = {
             f'{prefix}_loss': loss,
+            f'{prefix}_lattice_loss': loss_lattice,
+            f'{prefix}_coord_loss': loss_coord
         }
 
         return log_dict, loss
 
-    
