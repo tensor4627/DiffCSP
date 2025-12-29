@@ -72,7 +72,7 @@ class EmoMiaoNet(nn.Module):
         std: float = 1.0,
         norm_factor: float = 1.0,
     ):
-        super().__init__(cutoff=cutoff, t_max=t_max, betas=betas, sigmas=sigmas)
+        super().__init__()
         self.register_buffer("mean", torch.tensor(mean).float())
         self.register_buffer("std", torch.tensor(std).float())
         self.embedding_layer = embedding_layer
