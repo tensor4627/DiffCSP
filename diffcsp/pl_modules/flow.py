@@ -559,7 +559,7 @@ class HotPPFlow(BaseModule):
         cutoff = 7.0
         t_max = 1000
         self.model = EmoMiaoNet(
-            cutoff=cutoff,
+            cutoff=7.0,
             t_max= 1000,
             betas=[1.0,],
             sigmas=[1.0,],
@@ -567,15 +567,15 @@ class HotPPFlow(BaseModule):
             time_embedding=TimeEmbedding(64,t_max),
             radial_fn=BesselPoly(r_max=cutoff,n_max=8,cutoff_fn=PolynomialCutoff(cutoff=cutoff,p=5)),
             n_layers=5,
-            max_r_way=[2,2,2,2,2],
-            max_out_way=[2,2,2,2,2],
+            max_r_way=[2]*5,
+            max_out_way=[2]*5,
             output_dim=[64]*5,
             activate_fn='silu',
-            norm_factor=18.0
+            norm_factor = 18.0
         )
+        self.cutoff=cutoff
         self.t_max = t_max
-        self.time_steps=t_max
-        self.cutoff = cutoff
+        self.time_steps = t_max
         self.cspnet = CSPNet(cutoff=cutoff,max_neighbors=20)
 
     def get_batch_data(self,n_atoms, atomic_numbers, scaled_positions, cells, cutoff, device):
