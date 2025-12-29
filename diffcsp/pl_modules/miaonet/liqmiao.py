@@ -30,6 +30,7 @@ from hotpp.utils import (
     _scatter_mean,
     EnvPara,
 )
+EnvPara.ElEMENTS = [6]
 # from .base import CrystalDiffusion,CrystalEM
 from .readout import ReadoutLayer
 
@@ -103,10 +104,8 @@ class EmoMiaoNet(nn.Module):
 
         self.readout_layer = ReadoutLayer(
             n_dim=hidden_nodes[-1],
-            target_way={"cart_velocity":0,"deform_velocity":0},
-            target_channel={"cart_velocity":3,"deform_velocity":9},
-            # target_way={"cart_velocity":1,"deform_velocity":0},
-            # target_channel={"cart_velocity":1,"deform_velocity":9},
+            target_way={"cart_velocity":1,"deform_velocity":2},
+            target_channel={"cart_velocity":1,"deform_velocity":1},
             activate_fn=activate_fn,
         )
 
@@ -138,12 +137,11 @@ class EmoMiaoNet(nn.Module):
         # dE_dl = grads[required_derivatives.index("scaling")]
         # batch_data["forces_p"] = -dE_dr
         # batch_data["virial_p"] = dE_dl
-        # output_tensors["cart_velocity"].squeeze()
-        # inv_cell = batch_data['inv_cell'].repeat_interleave(batch_data["n_atoms"], dim=0)
-        # frac_diff = torch.bmm(output_tensors["cart_velocity"].view(-1, 1, 3), inv_cell).squeeze(1)
-        # batch_data["frac_velocity"] = frac_diff
-        batch_data["frac_velocity"] = output_tensors["cart_velocity"].squeeze()
-        deform_pa = output_tensors["deform_velocity"].squeeze().vier(-1,3,3)
+        output_tensors["cart_velocity"].squeeze()
+        inv_cell = batch_data['inv_cell'].repeat_interleave(batch_data["n_atoms"], dim=0)
+        frac_diff = torch.bmm(output_tensors["cart_velocity"].view(-1, 1, 3), inv_cell).squeeze(1)
+        batch_data["frac_velocity"] = frac_diff
+        deform_pa = output_tensors["deform_velocity"].squeeze()
         deform = _scatter_mean(deform_pa, batch_data["batch"])
         batch_data["deform_velocity"]=deform
         return batch_data
