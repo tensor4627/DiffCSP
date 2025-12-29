@@ -22,7 +22,7 @@ from diffcsp.common.data_utils import (
     EPSILON, cart_to_frac_coords, mard, lengths_angles_to_volume, lattice_params_to_matrix_torch,
     frac_to_cart_coords, min_distance_sqr_pbc)
 
-from diffcsp.pl_modules.diff_utils import d_log_p_wrapped_normal
+from diffcsp.pl_modules.diff_utils import d_log_p_wrapped_normal,get_static_noise,rot_tril
 
 
 
@@ -338,7 +338,7 @@ class CSPFlow(BaseModule):
         self.beta_scheduler = hydra.utils.instantiate(self.hparams.beta_scheduler)
         self.sigma_scheduler = hydra.utils.instantiate(self.hparams.sigma_scheduler)
         self.time_dim = self.hparams.time_dim
-        self.time_steps = self.hparams.time_steps
+        self.time_steps = self.hparams.timesteps
         self.time_embedding = SinusoidalTimeEmbeddings(self.time_dim)
         self.keep_lattice = self.hparams.cost_lattice < 1e-5
         self.keep_coords = self.hparams.cost_coord < 1e-5
@@ -354,15 +354,14 @@ class CSPFlow(BaseModule):
         time_emb = self.time_embedding(times)
 
         lattices = lattice_params_to_matrix_torch(batch.lengths, batch.angles)
+        lattices = rot_tril(lattices)
         frac_coords = batch.frac_coords
 
-        rand_x,rand_l = torch.rand_like(frac_coords),torch.rand_like(lattices)
+        # rand_x,rand_l = torch.rand_like(frac_coords),torch.rand_like(lattices)
+        rand_x,rand_l = get_static_noise(scaled_positions=frac_coords,cells=lattices)
+        
         input_lattice = rand_l+(lattices-rand_l)*times.view(-1,1,1)/self.time_steps
         input_frac_coords = rand_x + self.wrapped_distance_vector(rand_x,frac_coords)*(times.repeat_interleave(batch.num_atoms)[:, None])/self.time_steps
-        print(input_lattice,input_frac_coords)
-        print(rand_l,rand_x)
-        print(times)
-        assert 0==1
 
         if self.keep_coords:
             input_frac_coords = frac_coords
@@ -384,6 +383,7 @@ class CSPFlow(BaseModule):
             'loss_lattice' : loss_lattice,
             'loss_coord' : loss_coord
         }
+
 
     @torch.no_grad()
     def sample(self, batch, step_lr = 1e-5):
@@ -552,15 +552,15 @@ class CSPFlow(BaseModule):
 
         return log_dict, loss
 
-
+from diffcsp.pl_modules.cspnet import CSPNet
 class HotPPFlow(BaseModule):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        cutoff = 3.0
+        cutoff = 7.0
         t_max = 100
         self.model = EmoMiaoNet(
-            cutoff=3.0,
-            t_max= 100,
+            cutoff=cutoff,
+            t_max= 1000,
             betas=[1.0,],
             sigmas=[1.0,],
             embedding_layer=AtomicEmbedding([6],n_channel=64),
@@ -573,46 +573,31 @@ class HotPPFlow(BaseModule):
             activate_fn='silu'
         )
         self.t_max = t_max
-    @staticmethod
-    def get_batch_data(n_atoms, atomic_numbers, scaled_positions, cells, cutoff, device):
-        datas = []
-        n_frames = n_atoms.shape[0]
-        split_idx = [0] + list(np.cumsum(n_atoms))
-        for i in range(n_frames):
-            atoms = Atoms(
-                numbers=atomic_numbers[split_idx[i] : split_idx[i + 1]],
-                scaled_positions=scaled_positions[split_idx[i] : split_idx[i + 1]],
-                cell=cells[i],
-                pbc=True,
-            )
-            idx_i, idx_j, offset = neighbor_list(
-                "ijS", atoms, cutoff, self_interaction=False
-            )
-            cell = atoms.cell[:]
-            inv_cell = atoms.cell.reciprocal()[:].T
-            offset = np.array(offset) @ cell
-            datas.append(
-                {
-                    "atomic_number": torch.tensor(
-                        atoms.numbers, dtype=torch.long, device=device
-                    ),
-                    "idx_i": torch.tensor(idx_i, dtype=torch.long, device=device),
-                    "idx_j": torch.tensor(idx_j, dtype=torch.long, device=device),
-                    "coordinate": torch.tensor(
-                        atoms.positions, dtype=torch.float32, device=device
-                    ),
-                    "cell": torch.tensor(
-                        cell.reshape(1, 3, 3), dtype=torch.float32, device=device
-                    ),
-                    "inv_cell": torch.tensor(
-                        inv_cell.reshape(1, 3, 3), dtype=torch.float32, device=device
-                    ),
-                    "n_atoms": torch.tensor([len(atoms)], dtype=torch.long, device=device),
-                    "offset": torch.tensor(offset, dtype=torch.float32, device=device),
-                    "scaling":torch.eye(3, dtype=torch.float32,device =device).view(1, 3, 3)
-                }
-            )
-        batch_data  = collect_data(datas)
+        self.cspnet = CSPNet()
+
+    def get_batch_data(self,n_atoms, atomic_numbers, scaled_positions, cells, cutoff, device):
+        batch = torch.repeat_interleave(
+            torch.arange(n_atoms.shape[0], device=n_atoms.device),
+            repeats=n_atoms.to(torch.long),
+            dim=0,
+        )
+        edge_index, edge_vectors = self.cspnet.gen_edges(n_atoms, scaled_positions,cells, node2graph=batch, cutoff=cutoff, max_neighbors=20)
+        idx_i, idx_j = edge_index
+        offset = (edge_vectors-scaled_positions[edge_index[1]]+scaled_positions[edge_index[0]])
+        offset = torch.round(offset)
+        batch_data = {
+            "atomic_number": atomic_numbers.to(torch.long).to(device),
+            "idx_i": idx_i.to(torch.long).to(device),
+            "idx_j": idx_j.to(torch.long).to(device),
+            # "rij": edge_vectors.to(torch.float32).to(device),
+            "cell": cells,
+            "coordinate": (scaled_positions.view(-1,1,3)@cells.repeat_interleave(n_atoms,dim=0)).squeeze(1).to(torch.float32).to(device),
+            "n_atoms": n_atoms.to(torch.long).to(device),
+            "batch": batch.to(torch.long).to(device),
+            "offset": offset.to(torch.float32).to(device),
+            "scaling":torch.eye(3, dtype=torch.float32,device =device).view(1, 3, 3).expand(n_atoms.shape[0],-1,-1),
+            "inv_cell": torch.inverse(cells).to(torch.float32).to(device),
+        }
         batch_data["coordinate"].requires_grad_()
         batch_data["scaling"].requires_grad_()
 
@@ -624,8 +609,7 @@ class HotPPFlow(BaseModule):
         batch_data['offset'] = torch.matmul(
             batch_data['offset'][:, None, :], batch_data['scaling'][idx_m][idx_i]
         ).squeeze(1)
-
-        return batch_data
+        return batch_data 
 
     @staticmethod
     def uniform_sample_t(self, batch_size, device):
@@ -644,7 +628,8 @@ class HotPPFlow(BaseModule):
         lattices = lattice_params_to_matrix_torch(batch.lengths, batch.angles)
         frac_coords = batch.frac_coords
 
-        rand_x,rand_l = torch.rand_like(frac_coords),torch.rand_like(lattices)
+        # rand_x,rand_l = torch.rand_like(frac_coords),torch.rand_like(lattices)
+        rand_x,rand_l = get_static_noise(frac_coords,lattices)
         input_lattice = rand_l+(lattices-rand_l)*times.view(-1,1,1)/self.time_steps
         input_frac_coords = rand_x + self.wrapped_distance_vector(rand_x,frac_coords)*(times.repeat_interleave(batch.num_atoms)[:, None])/self.time_steps
         atomic_numbers = torch.ones_like(frac_coords)[0]*6
@@ -661,7 +646,8 @@ class HotPPFlow(BaseModule):
         batch_data = self.model(batch_data,times)
         pred_x_velocity = batch_data["frac_velocity"]
         pred_d_velocity = batch_data["deform_velocity"]
-        pred_l_velocity = torch.bmm(rand_l,pred_d_velocity)
+        # pred_l_velocity = torch.bmm(rand_l,pred_d_velocity)
+        pred_l_velocity = torch.bmm(input_lattice,pred_d_velocity)
         loss_lattice = F.mse_loss(pred_l_velocity, (lattices-rand_l))
         loss_coord = F.mse_loss(pred_x_velocity, self.wrapped_distance_vector(rand_x,frac_coords))
 

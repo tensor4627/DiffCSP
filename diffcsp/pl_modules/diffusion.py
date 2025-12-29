@@ -324,10 +324,6 @@ class CSPFlow(BaseModule):
         rand_x,rand_l = torch.rand_like(frac_coords),torch.rand_like(lattices)
         input_lattice = rand_l+(lattices-rand_l)*times.view(-1,1,1)/self.time_steps
         input_frac_coords = rand_x + self.wrapped_distance_vector(rand_x,frac_coords)*(times.repeat_interleave(batch.num_atoms)[:, None])/self.time_steps
-        print(input_lattice,input_frac_coords)
-        print(rand_l,rand_x)
-        print(times)
-        assert 0==1
 
         if self.keep_coords:
             input_frac_coords = frac_coords

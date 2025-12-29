@@ -24,7 +24,7 @@ from diffcsp.common.data_utils import (
     frac_to_cart_coords, min_distance_sqr_pbc)
 MAX_ATOMIC_NUM=100
 
-from diffcsp.pl_modules.diff_utils import d_log_p_wrapped_normal
+from diffcsp.pl_modules.diff_utils import d_log_p_wrapped_normal,get_static_noise
 from scipy.optimize import linear_sum_assignment
 
 import pdb

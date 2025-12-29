@@ -110,5 +110,109 @@ class SigmaScheduler(nn.Module):
     def uniform_sample_t(self, batch_size, device):
         ts = np.random.choice(np.arange(1, self.timesteps+1), batch_size)
         return torch.from_numpy(ts).to(device)
+    
 
 
+
+def lattice_from_parameters(a, b, c, alpha, beta, gamma, degrees=True):
+    """
+    a, b, c: (...,)  张量
+    alpha, beta, gamma: (...,) 张量
+    return: (..., 3, 3) 晶格矩阵
+    """
+    if degrees:
+        alpha = torch.deg2rad(alpha)
+        beta  = torch.deg2rad(beta)
+        gamma = torch.deg2rad(gamma)
+
+    # 计算三角函数
+    cos_alpha = torch.cos(alpha)
+    cos_beta  = torch.cos(beta)
+    cos_gamma = torch.cos(gamma)
+    sin_gamma = torch.sin(gamma)
+
+    # a1
+    a1 = torch.stack([a, torch.zeros_like(a), torch.zeros_like(a)], dim=-1)
+
+    # a2
+    a2 = torch.stack([
+        b * cos_gamma,
+        b * sin_gamma,
+        torch.zeros_like(b)
+    ], dim=-1)
+
+    # a3
+    cx = c * cos_beta
+    cy = c * (cos_alpha - cos_beta * cos_gamma) / sin_gamma
+    cz = c * torch.sqrt(
+        1 - cos_beta**2
+        - ((cos_alpha - cos_beta * cos_gamma) / sin_gamma)**2
+    )
+
+    a3 = torch.stack([cx, cy, cz], dim=-1)
+
+    # 拼成矩阵 (..., 3, 3)
+    lattice = torch.stack([a1, a2, a3], dim=-2)
+    return lattice
+
+def get_static_noise(scaled_positions,cells):
+    scaled_positions_noise = torch.rand_like(scaled_positions)
+    a_low,a_high = 2.4,12.8
+    alpha_low,alpha_high = 60,120
+    low = torch.tensor([a_low,a_low,a_low,alpha_low,alpha_low,alpha_low],device=cells.device,dtype=cells.dtype)
+    high = torch.tensor([a_high,a_high,a_high,alpha_high,alpha_high,alpha_high],device=cells.device,dtype=cells.dtype)
+    cells_noise_6d = low + (high - low) * torch.rand(size=(cells.shape[0],low.shape[0]),device=cells.device,dtype=cells.dtype)
+    cells_noise = lattice_from_parameters(cells_noise_6d[:,0],
+                                                cells_noise_6d[:,1],
+                                                cells_noise_6d[:,2],
+                                                cells_noise_6d[:,3],
+                                                cells_noise_6d[:,4],
+                                                cells_noise_6d[:,5])
+    return scaled_positions_noise,cells_noise       
+
+
+def rot_tril(H):
+    """
+    Rotate lattice matrices to a lower-triangular gauge with positive diagonal.
+
+    Parameters
+    ----------
+    H : torch.Tensor
+        Shape (B, 3, 3). Columns are lattice vectors.
+
+    Returns
+    -------
+    L : torch.Tensor
+        Shape (B, 3, 3). Lower-triangular lattice with positive diagonal.
+    R_rot : torch.Tensor
+        Shape (B, 3, 3). Rotation matrix in SO(3), satisfying R_rot @ H = L.
+    """
+    # Step 1: QR decomposition of H^T
+    # H^T = Q R
+    Q, R = torch.linalg.qr(H.transpose(-2, -1))
+
+    # Step 2: enforce Q ∈ SO(3) (det = +1)
+    detQ = torch.det(Q)                         # (B,)
+    signQ = detQ.sign().view(-1, 1, 1)          # (B,1,1)
+    Q = Q * signQ                               # flip one column if needed
+
+    # Step 3: construct lower-triangular lattice
+    # H = R^T Q^T  ⇒  Q^T H = R^T
+    L = R.transpose(-2, -1)
+    R_rot = Q.transpose(-2, -1)
+
+    # Step 4: enforce positive diagonal of L
+    diag = torch.diagonal(L, dim1=-2, dim2=-1)  # (B,3)
+    diag_sign = diag.sign()
+    diag_sign = torch.where(
+        diag_sign == 0,
+        torch.ones_like(diag_sign),
+        diag_sign,
+    )
+
+    D = torch.diag_embed(diag_sign)              # (B,3,3)
+
+    L = D @ L
+    R_rot = D @ R_rot
+
+    return L, R_rot
