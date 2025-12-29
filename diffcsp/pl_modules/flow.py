@@ -557,23 +557,26 @@ class HotPPFlow(BaseModule):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         cutoff = 7.0
-        t_max = 100
+        t_max = 1000
         self.model = EmoMiaoNet(
             cutoff=cutoff,
             t_max= 1000,
             betas=[1.0,],
             sigmas=[1.0,],
             embedding_layer=AtomicEmbedding([6],n_channel=64),
-            time_embedding=TimeEmbedding(256,t_max),
+            time_embedding=TimeEmbedding(64,t_max),
             radial_fn=BesselPoly(r_max=cutoff,n_max=8,cutoff_fn=PolynomialCutoff(cutoff=cutoff,p=5)),
             n_layers=5,
             max_r_way=[2,2,2,2,2],
             max_out_way=[2,2,2,2,2],
-            output_dim=64,
-            activate_fn='silu'
+            output_dim=[64]*5,
+            activate_fn='silu',
+            norm_factor=18.0
         )
         self.t_max = t_max
-        self.cspnet = CSPNet()
+        self.time_steps=t_max
+        self.cutoff = cutoff
+        self.cspnet = CSPNet(cutoff=cutoff,max_neighbors=20)
 
     def get_batch_data(self,n_atoms, atomic_numbers, scaled_positions, cells, cutoff, device):
         batch = torch.repeat_interleave(
@@ -581,7 +584,7 @@ class HotPPFlow(BaseModule):
             repeats=n_atoms.to(torch.long),
             dim=0,
         )
-        edge_index, edge_vectors = self.cspnet.gen_edges(n_atoms, scaled_positions,cells, node2graph=batch, cutoff=cutoff, max_neighbors=20)
+        edge_index, edge_vectors = self.cspnet.gen_edges(n_atoms, scaled_positions,cells, node2graph=batch)#, cutoff=cutoff, max_neighbors=20)
         idx_i, idx_j = edge_index
         offset = (edge_vectors-scaled_positions[edge_index[1]]+scaled_positions[edge_index[0]])
         offset = torch.round(offset)
@@ -611,8 +614,7 @@ class HotPPFlow(BaseModule):
         ).squeeze(1)
         return batch_data 
 
-    @staticmethod
-    def uniform_sample_t(self, batch_size, device):
+    def uniform_sample_t(self,batch_size, device):
         ts = np.random.choice(np.arange(1, self.t_max+1), batch_size)
         return torch.from_numpy(ts).to(device)
 
@@ -634,16 +636,16 @@ class HotPPFlow(BaseModule):
         input_frac_coords = rand_x + self.wrapped_distance_vector(rand_x,frac_coords)*(times.repeat_interleave(batch.num_atoms)[:, None])/self.time_steps
         atomic_numbers = torch.ones_like(frac_coords)[0]*6
         batch_data = self.get_batch_data(
-            batch.num_atoms.detach().clone().cpu().numpy(),
-            atomic_numbers.detach().clone().cpu().numpy(),
-            input_frac_coords.detach().clone().cpu().numpy(),
-            input_lattice.detach().clone().cpu().numpy(),
-            float(self.cutoff.detach().clone().cpu().numpy()),
+            batch.num_atoms,#.detach().clone().cpu().numpy(),
+            atomic_numbers,#.detach().clone().cpu().numpy(),
+            input_frac_coords,#.detach().clone().cpu().numpy(),
+            input_lattice,#.detach().clone().cpu().numpy(),
+            float(self.cutoff),#.detach().clone().cpu().numpy()),
             device=frac_coords.device,
         )
 
 
-        batch_data = self.model(batch_data,times)
+        batch_data = self.model.model_predict(batch_data,times)
         pred_x_velocity = batch_data["frac_velocity"]
         pred_d_velocity = batch_data["deform_velocity"]
         # pred_l_velocity = torch.bmm(rand_l,pred_d_velocity)

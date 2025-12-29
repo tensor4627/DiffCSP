@@ -147,7 +147,6 @@ class EmoMiaoNet(nn.Module):
         batch_data["deform_velocity"]=deform
         return batch_data
 
-
     def get_init_info(
         self,
         batch_data: Dict[str, torch.Tensor],
