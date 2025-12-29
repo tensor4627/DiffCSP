@@ -11,8 +11,8 @@ wandb:
   group: ${expname}
 
 wandb_watch:
-  log: 'all'
-  log_freq: 500
+  log: "parameters"
+  log_freq: 0
 
 lr_monitor:
   logging_interval: "step"
