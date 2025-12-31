@@ -472,8 +472,7 @@ class CSPEnergyMatching(BaseModule):
                                                     cells_noise_6d[:,4],
                                                     cells_noise_6d[:,5])
         elif mode == "log":
-            loc = 4.159031401196135
-            scale = 2.509884308597978
+            loc,scale = 1.3595351865425995,0.1277552273430223
             cell_l = torch.exp(scale*torch.randn(size=(cells.shape[0],3),device=cells.device,dtype=cells.dtype)+loc)
             cell_a = 60+60*torch.rand(size=(cells.shape[0],3),device=cells.device,dtype=cells.dtype)
             cells_noise = self.lattice_from_parameters(cell_l[:,0],
