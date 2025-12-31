@@ -1,5 +1,5 @@
 _target_: diffcsp.pl_modules.flow.HotPPFlow
-time_dim: 256
+time_dim: 64
 latent_dim: 0
 cost_coord: 1.
 cost_lattice: 0.

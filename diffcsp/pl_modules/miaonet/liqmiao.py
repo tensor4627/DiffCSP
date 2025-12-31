@@ -30,7 +30,7 @@ from hotpp.utils import (
     _scatter_mean,
     EnvPara,
 )
-EnvPara.ElEMENTS = [6]
+EnvPara.ELEMENTS = [6]
 # from .base import CrystalDiffusion,CrystalEM
 from .readout import ReadoutLayer
 
