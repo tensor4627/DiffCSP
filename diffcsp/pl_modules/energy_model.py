@@ -457,19 +457,31 @@ class CSPEnergyMatching(BaseModule):
     def wrapped_distance_vector(start_fpos,end_fpos):
         dis = end_fpos-start_fpos
         return dis-torch.round(dis)
-    def get_static_noise(self,scaled_positions,cells):
+    def get_static_noise(self,scaled_positions,cells,mode="uni"):
         scaled_positions_noise = torch.rand_like(scaled_positions)
-        a_low,a_high = 2.4,12.8
-        alpha_low,alpha_high = 60,120
-        low = torch.tensor([a_low,a_low,a_low,alpha_low,alpha_low,alpha_low],device=cells.device,dtype=cells.dtype)
-        high = torch.tensor([a_high,a_high,a_high,alpha_high,alpha_high,alpha_high],device=cells.device,dtype=cells.dtype)
-        cells_noise_6d = low + (high - low) * torch.rand(size=(cells.shape[0],low.shape[0]),device=cells.device,dtype=cells.dtype)
-        cells_noise = self.lattice_from_parameters(cells_noise_6d[:,0],
-                                                   cells_noise_6d[:,1],
-                                                   cells_noise_6d[:,2],
-                                                   cells_noise_6d[:,3],
-                                                   cells_noise_6d[:,4],
-                                                   cells_noise_6d[:,5])
+        if mode == "uni":
+            a_low,a_high = 2.4,12.8
+            alpha_low,alpha_high = 60,120
+            low = torch.tensor([a_low,a_low,a_low,alpha_low,alpha_low,alpha_low],device=cells.device,dtype=cells.dtype)
+            high = torch.tensor([a_high,a_high,a_high,alpha_high,alpha_high,alpha_high],device=cells.device,dtype=cells.dtype)
+            cells_noise_6d = low + (high - low) * torch.rand(size=(cells.shape[0],low.shape[0]),device=cells.device,dtype=cells.dtype)
+            cells_noise = self.lattice_from_parameters(cells_noise_6d[:,0],
+                                                    cells_noise_6d[:,1],
+                                                    cells_noise_6d[:,2],
+                                                    cells_noise_6d[:,3],
+                                                    cells_noise_6d[:,4],
+                                                    cells_noise_6d[:,5])
+        elif mode == "log":
+            loc = 4.159031401196135
+            scale = 2.509884308597978
+            cell_l = torch.exp(scale*torch.randn(size=(cells.shape[0],3),device=cells.device,dtype=cells.dtype)+loc)
+            cell_a = 60+60*torch.rand(size=(cells.shape[0],3),device=cells.device,dtype=cells.dtype)
+            cells_noise = self.lattice_from_parameters(cell_l[:,0],
+                                                    cell_l[:,1],
+                                                    cell_l[:,2],
+                                                    cell_a[:,0],
+                                                    cell_a[:,1],
+                                                    cell_a[:,2])
         return scaled_positions_noise,cells_noise
 
 
@@ -539,7 +551,7 @@ class CSPEnergyMatching(BaseModule):
         frac_coords = batch.frac_coords
 
         #rand_x,rand_l = torch.rand_like(frac_coords),torch.rand_like(lattices)
-        rand_x,rand_l = self.get_static_noise(frac_coords,lattices)
+        rand_x,rand_l = self.get_static_noise(frac_coords,lattices,mode="log")
         lattices,_ = self.rot_tril(lattices)
         input_lattice = rand_l+(lattices-rand_l)*times.view(-1,1,1)/self.time_steps
         input_frac_coords = rand_x + self.wrapped_distance_vector(rand_x,frac_coords)*(times.repeat_interleave(batch.num_atoms)[:, None])/self.time_steps
