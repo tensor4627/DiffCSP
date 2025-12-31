@@ -450,6 +450,8 @@ class CSPEnergyMatching(BaseModule):
         self.time_embedding = SinusoidalTimeEmbeddings(self.time_dim)
         self.keep_lattice = self.hparams.cost_lattice < 1e-5
         self.keep_coords = self.hparams.cost_coord < 1e-5
+        # for test
+        self.i = 0
 
     @staticmethod
     def wrapped_distance_vector(start_fpos,end_fpos):
@@ -557,7 +559,10 @@ class CSPEnergyMatching(BaseModule):
                 grad_outputs = [torch.ones_like(pred_e)]
                 grad_f, grad_l = grad(pred_e, [input_frac_coords,input_lattice], grad_outputs = grad_outputs,create_graph=True,allow_unused=True)
         loss_lattice = F.mse_loss(torch.tril(-grad_l), torch.tril(lattices-rand_l))
-        grad_x = grad_f.view(-1,1,3)@input_lattice.transpose(-1,-2).repeat_interleave(batch.num_atoms,dim=0)
+        self.i+=1
+        if self.i%32==0:
+            print(-grad_l,lattices-rand_l)
+        grad_x = grad_f.view(-1,1,3)@input_lattice.detach().transpose(-1,-2).repeat_interleave(batch.num_atoms,dim=0).squeeze(1)
         loss_coord = F.mse_loss((-grad_x), self.wrapped_distance_vector(rand_x,frac_coords))
 
         loss = (
