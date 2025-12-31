@@ -555,7 +555,7 @@ class CSPEnergyMatching(BaseModule):
             with RequiresGradContext(input_frac_coords, input_lattice, requires_grad=True):
                 pred_e = self.decoder(time_emb, batch.atom_types, input_frac_coords, input_lattice, batch.num_atoms, batch.batch)
                 grad_outputs = [torch.ones_like(pred_e)]
-                grad_f, grad_l = grad(pred_e, [input_frac_coords,torch.tril(input_lattice)], grad_outputs = grad_outputs,create_graph=True,allow_unused=True)
+                grad_f, grad_l = grad(pred_e, [input_frac_coords,input_lattice], grad_outputs = grad_outputs,create_graph=True,allow_unused=True)
         loss_lattice = F.mse_loss(torch.tril(-grad_l), torch.tril(lattices-rand_l))
         loss_coord = F.mse_loss(-torch.bmm(grad_f,input_lattice.transpose(-1,-2)), self.wrapped_distance_vector(rand_x,frac_coords))
 
