@@ -557,7 +557,7 @@ class CSPEnergyMatching(BaseModule):
                 grad_outputs = [torch.ones_like(pred_e)]
                 grad_f, grad_l = grad(pred_e, [input_frac_coords,input_lattice], grad_outputs = grad_outputs,create_graph=True,allow_unused=True)
         loss_lattice = F.mse_loss(torch.tril(-grad_l), torch.tril(lattices-rand_l))
-        loss_coord = F.mse_loss(-torch.bmm(grad_f,input_lattice.transpose(-1,-2)), self.wrapped_distance_vector(rand_x,frac_coords))
+        loss_coord = F.mse_loss(-torch.bmm(grad_f,input_lattice.unsqueeze(0).transpose(-1,-2)), self.wrapped_distance_vector(rand_x,frac_coords))
 
         loss = (
             self.hparams.cost_lattice * loss_lattice +
