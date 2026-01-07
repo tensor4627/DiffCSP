@@ -587,7 +587,7 @@ class HotPPFlow(BaseModule):
         edge_index, edge_vectors = self.cspnet.gen_edges(n_atoms, scaled_positions,cells, node2graph=batch)#, cutoff=cutoff, max_neighbors=20)
         idx_i, idx_j = edge_index
         offset = (edge_vectors-scaled_positions[edge_index[1]]+scaled_positions[edge_index[0]])
-        offset = torch.round(offset)
+        offset = torch.round(offset)@cells
         batch_data = {
             "atomic_number": atomic_numbers.to(torch.long).to(device),
             "idx_i": idx_i.to(torch.long).to(device),
@@ -831,3 +831,257 @@ class HotPPFlow(BaseModule):
         return log_dict, loss
 
     
+
+from diffcsp.pl_modules.energy_model import RequiresGradContext
+class CSPMeanFlow(BaseModule):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        
+        self.decoder = hydra.utils.instantiate(self.hparams.decoder, latent_dim = self.hparams.latent_dim + self.hparams.time_dim, _recursive_=False)
+        self.beta_scheduler = hydra.utils.instantiate(self.hparams.beta_scheduler)
+        self.sigma_scheduler = hydra.utils.instantiate(self.hparams.sigma_scheduler)
+        self.time_dim = self.hparams.time_dim
+        self.time_steps = self.hparams.timesteps
+        self.time_embedding = SinusoidalTimeEmbeddings(self.time_dim)
+        self.keep_lattice = self.hparams.cost_lattice < 1e-5
+        self.keep_coords = self.hparams.cost_coord < 1e-5
+
+    @staticmethod
+    def wrapped_distance_vector(start_fpos,end_fpos):
+        dis = end_fpos-start_fpos
+        return dis-torch.round(dis)
+    
+    def masked_jvp_generator(self,batch,batch_id,atoms_id):
+        mask={}
+        mask["atom_types"]=batch.atom_types[atoms_id[batch_id]:atoms_id[batch_id+1]]
+        mask["num_atoms"]=batch.num_atoms[batch_id:batch_id+1]
+        mask["node2graph"]=batch.batch[batch_id:batch_id+1]
+        return mask
+
+    def forward(self, batch):
+        batch_size = batch.num_graphs
+        # times = self.beta_scheduler.uniform_sample_t(batch_size, self.device)
+        times_r = self.beta_scheduler.uniform_sample_t(batch_size, self.device)
+        times_t = self.beta_scheduler.uniform_sample_t(batch_size, self.device)
+
+        lattices = lattice_params_to_matrix_torch(batch.lengths, batch.angles)
+        lattices = rot_tril(lattices)
+        frac_coords = batch.frac_coords
+
+        # rand_x,rand_l = torch.rand_like(frac_coords),torch.rand_like(lattices)
+        rand_x,rand_l = get_static_noise(scaled_positions=frac_coords,cells=lattices)
+        target_l = lattices-rand_l
+        target_x = self.wrapped_distance_vector(rand_x,frac_coords)
+        input_lattice = rand_l+(lattices-rand_l)*times_t.view(-1,1,1)/self.time_steps
+        input_frac_coords = rand_x + self.wrapped_distance_vector(rand_x,frac_coords)*(times_t.repeat_interleave(batch.num_atoms)[:, None])/self.time_steps
+
+        if self.keep_coords:
+            input_frac_coords = frac_coords
+
+        if self.keep_lattice:
+            input_lattice = lattices
+
+        loss_lattice = 0
+        loss_coord =0
+        with torch.enable_grad():
+            atoms_tot_num = torch.cumsum(batch.num_atoms)
+            atoms_id = torch.cat([torch.zeros(1, device=atoms_tot_num.device, dtype=atoms_tot_num.dtype), atoms_tot_num])
+            for batch_id in range(batch_size):
+                this_mask = self.masked_jvp_generator(batch,batch_id,atoms_id)
+                this_frac_coords = input_frac_coords[atoms_id[batch_id]:atoms_id[batch_id+1],:].detach().requires_grad()
+                this_lattices = lattices[batch_id:batch_id+1,:,:].requires_grad()
+                this_time_r = times_r[batch_id:batch_id+1].to(torch.float).requires_grad()
+                this_time_t = times_t[batch_id:batch_id+1].to(torch.float).requires_grad()
+                x_tot = torch.cat([this_lattices.view(-1,3),this_frac_coords],dim=0)
+                self.decoder.get_jvp_info(this_mask)
+                v_tot = self.decoder(x_tot,this_time_t,this_time_t)
+                (u_tot),(du_tot) = torch.func.jvp(self.decoder,(x_tot,this_time_r,this_time_t),(v_tot,0,1))
+                v_tot_pred = u_tot+(this_time_t-this_time_r)*du_tot
+                lattices_item = x_tot.shape[0]-this_mask["num_atoms"][0]
+                pred_l_velocity = v_tot_pred[:lattices_item,:].view(-1,3,3)
+                pred_x_velocity = v_tot_pred[lattices_item:,:]
+                this_target_l = target_l[batch_id:batch_id+1,:,:]
+                this_target_x = target_x[atoms_id[batch_id]:atoms_id[batch_id+1],:]
+                loss_lattice+=F.mse_loss(pred_l_velocity, this_target_l)
+                loss_coord +=F.mse_loss(pred_x_velocity, this_target_x)
+
+        loss_lattice/=batch_size
+        loss_coord/=batch_size
+
+        loss = (
+            self.hparams.cost_lattice * loss_lattice +
+            self.hparams.cost_coord * loss_coord)
+
+        return {
+            'loss' : loss,
+            'loss_lattice' : loss_lattice,
+            'loss_coord' : loss_coord
+        }
+
+
+    @torch.no_grad()
+    def sample(self, batch, step_lr = 1e-5):
+
+        batch_size = batch.num_graphs
+
+        l_T, x_T = torch.randn([batch_size, 3, 3]).to(self.device), torch.rand([batch.num_nodes, 3]).to(self.device)
+
+        if self.keep_coords:
+            x_T = batch.frac_coords
+
+        if self.keep_lattice:
+            l_T = lattice_params_to_matrix_torch(batch.lengths, batch.angles)
+
+        time_start = self.beta_scheduler.timesteps
+
+        traj = {time_start : {
+            'num_atoms' : batch.num_atoms,
+            'atom_types' : batch.atom_types,
+            'frac_coords' : x_T % 1.,
+            'lattices' : l_T
+        }}
+
+
+        for t in tqdm(range(time_start, 0, -1)):
+
+            times = torch.full((batch_size, ), t, device = self.device)
+
+            time_emb = self.time_embedding(times)
+            
+            alphas = self.beta_scheduler.alphas[t]
+            alphas_cumprod = self.beta_scheduler.alphas_cumprod[t]
+
+            sigmas = self.beta_scheduler.sigmas[t]
+            sigma_x = self.sigma_scheduler.sigmas[t]
+            sigma_norm = self.sigma_scheduler.sigmas_norm[t]
+
+
+            c0 = 1.0 / torch.sqrt(alphas)
+            c1 = (1 - alphas) / torch.sqrt(1 - alphas_cumprod)
+
+            x_t = traj[t]['frac_coords']
+            l_t = traj[t]['lattices']
+
+            if self.keep_coords:
+                x_t = x_T
+
+            if self.keep_lattice:
+                l_t = l_T
+
+            # PC-sampling refers to "Score-Based Generative Modeling through Stochastic Differential Equations"
+            # Origin code : https://github.com/yang-song/score_sde/blob/main/sampling.py
+
+            # Corrector
+
+            rand_l = torch.randn_like(l_T) if t > 1 else torch.zeros_like(l_T)
+            rand_x = torch.randn_like(x_T) if t > 1 else torch.zeros_like(x_T)
+
+            step_size = step_lr * (sigma_x / self.sigma_scheduler.sigma_begin) ** 2
+            # step_size = step_lr / (sigma_norm * (self.sigma_scheduler.sigma_begin) ** 2)
+            std_x = torch.sqrt(2 * step_size)
+
+            pred_l, pred_x = self.decoder(time_emb, batch.atom_types, x_t, l_t, batch.num_atoms, batch.batch)
+
+            pred_x = pred_x * torch.sqrt(sigma_norm)
+
+            x_t_minus_05 = x_t - step_size * pred_x + std_x * rand_x if not self.keep_coords else x_t
+
+            l_t_minus_05 = l_t if not self.keep_lattice else l_t
+
+            # Predictor
+
+            rand_l = torch.randn_like(l_T) if t > 1 else torch.zeros_like(l_T)
+            rand_x = torch.randn_like(x_T) if t > 1 else torch.zeros_like(x_T)
+
+            adjacent_sigma_x = self.sigma_scheduler.sigmas[t-1] 
+            step_size = (sigma_x ** 2 - adjacent_sigma_x ** 2)
+            std_x = torch.sqrt((adjacent_sigma_x ** 2 * (sigma_x ** 2 - adjacent_sigma_x ** 2)) / (sigma_x ** 2))   
+
+            pred_l, pred_x = self.decoder(time_emb, batch.atom_types, x_t_minus_05, l_t_minus_05, batch.num_atoms, batch.batch)
+
+            pred_x = pred_x * torch.sqrt(sigma_norm)
+
+            x_t_minus_1 = x_t_minus_05 - step_size * pred_x + std_x * rand_x if not self.keep_coords else x_t
+
+            l_t_minus_1 = c0 * (l_t_minus_05 - c1 * pred_l) + sigmas * rand_l if not self.keep_lattice else l_t
+
+
+            traj[t - 1] = {
+                'num_atoms' : batch.num_atoms,
+                'atom_types' : batch.atom_types,
+                'frac_coords' : x_t_minus_1 % 1.,
+                'lattices' : l_t_minus_1              
+            }
+
+        traj_stack = {
+            'num_atoms' : batch.num_atoms,
+            'atom_types' : batch.atom_types,
+            'all_frac_coords' : torch.stack([traj[i]['frac_coords'] for i in range(time_start, -1, -1)]),
+            'all_lattices' : torch.stack([traj[i]['lattices'] for i in range(time_start, -1, -1)])
+        }
+
+        return traj[0], traj_stack
+
+
+
+    def training_step(self, batch: Any, batch_idx: int) -> torch.Tensor:
+
+        output_dict = self(batch)
+
+        loss_lattice = output_dict['loss_lattice']
+        loss_coord = output_dict['loss_coord']
+        loss = output_dict['loss']
+
+
+        self.log_dict(
+            {'train_loss': loss,
+            'lattice_loss': loss_lattice,
+            'coord_loss': loss_coord},
+            on_step=True,
+            on_epoch=True,
+            prog_bar=True,
+        )
+
+        if loss.isnan():
+            return None
+
+        return loss
+
+    def validation_step(self, batch: Any, batch_idx: int) -> torch.Tensor:
+
+        output_dict = self(batch)
+
+        log_dict, loss = self.compute_stats(output_dict, prefix='val')
+
+        self.log_dict(
+            log_dict,
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+        )
+        return loss
+
+    def test_step(self, batch: Any, batch_idx: int) -> torch.Tensor:
+
+        output_dict = self(batch)
+
+        log_dict, loss = self.compute_stats(output_dict, prefix='test')
+
+        self.log_dict(
+            log_dict,
+        )
+        return loss
+
+    def compute_stats(self, output_dict, prefix):
+
+        loss_lattice = output_dict['loss_lattice']
+        loss_coord = output_dict['loss_coord']
+        loss = output_dict['loss']
+
+        log_dict = {
+            f'{prefix}_loss': loss,
+            f'{prefix}_lattice_loss': loss_lattice,
+            f'{prefix}_coord_loss': loss_coord
+        }
+
+        return log_dict, loss
