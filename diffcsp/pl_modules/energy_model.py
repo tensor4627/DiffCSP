@@ -573,7 +573,7 @@ class CSPEnergyMatching(BaseModule):
         with torch.enable_grad():
             with RequiresGradContext(input_frac_coords, input_lattice, requires_grad=True):
                 pred_e = (self.decoder(time_emb, batch.atom_types, input_frac_coords, input_lattice, batch.num_atoms, batch.batch))
-                atoms_batch_id = torch.arange(input_lattice.shape[0]).repeat_interleave(batch.num_atoms,dim=0).to(input_lattice.dtype)
+                atoms_batch_id = torch.arange(input_lattice.shape[0],dtype=input_lattice.dtype).repeat_interleave((batch.num_atoms).to(input_lattice.dtype),dim=0)
                 energy_per_structure = _scatter_add(pred_e,atoms_batch_id)
                 # grad_f, grad_l = grad(pred_e, [input_frac_coords,input_lattice], grad_outputs = grad_outputs,create_graph=True,allow_unused=True)
                 grad_f, grad_l = grad([pred_e.sum()], [input_frac_coords,input_lattice],create_graph=True,allow_unused=True)
