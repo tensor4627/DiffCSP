@@ -17,7 +17,13 @@ from torch_scatter.composite import scatter_softmax
 from torch_geometric.utils import to_dense_adj, dense_to_sparse
 from torch.autograd import grad
 from tqdm import tqdm
-
+from hotpp.utils import (
+    expand_para,
+    find_distances,
+    _scatter_add,
+    _scatter_mean,
+    EnvPara,
+)
 from diffcsp.common.utils import PROJECT_ROOT
 from diffcsp.common.data_utils import (
     EPSILON, cart_to_frac_coords, mard, lengths_angles_to_volume, lattice_params_to_matrix_torch,
@@ -566,9 +572,11 @@ class CSPEnergyMatching(BaseModule):
         #pred_e = self.decoder(time_emb, batch.atom_types, input_frac_coords, input_lattice, batch.num_atoms, batch.batch)
         with torch.enable_grad():
             with RequiresGradContext(input_frac_coords, input_lattice, requires_grad=True):
-                pred_e = self.decoder(time_emb, batch.atom_types, input_frac_coords, input_lattice, batch.num_atoms, batch.batch)
+                pred_e = (self.decoder(time_emb, batch.atom_types, input_frac_coords, input_lattice, batch.num_atoms, batch.batch))
+                energy_per_structure = _scatter_add(pred_e,batch.batch)
                 grad_outputs = [torch.ones_like(pred_e)]
-                grad_f, grad_l = grad(pred_e, [input_frac_coords,input_lattice], grad_outputs = grad_outputs,create_graph=True,allow_unused=True)
+                # grad_f, grad_l = grad(pred_e, [input_frac_coords,input_lattice], grad_outputs = grad_outputs,create_graph=True,allow_unused=True)
+                grad_f, grad_l = grad([pred_e.sum()], [input_frac_coords,input_lattice],create_graph=True,allow_unused=True)
         loss_lattice = F.mse_loss(torch.tril(-grad_l), torch.tril(lattices-rand_l))
         self.i+=1
         grad_x = (grad_f.view(-1,1,3)@input_lattice.detach().transpose(-1,-2).repeat_interleave(batch.num_atoms,dim=0)).squeeze(1)
@@ -576,7 +584,7 @@ class CSPEnergyMatching(BaseModule):
         if self.i%32==0:
             print(-grad_l[0].flatten(),(lattices-rand_l)[0].flatten(),sep="\n")
             print(-grad_x[0].flatten(),self.wrapped_distance_vector(rand_x,frac_coords)[0].flatten(),sep="\n")
-            print(pred_e)
+            print(energy_per_structure.flatten())
             
 
         loss = (
