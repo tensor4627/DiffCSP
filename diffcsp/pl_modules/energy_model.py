@@ -573,8 +573,6 @@ class CSPEnergyMatching(BaseModule):
         with torch.enable_grad():
             with RequiresGradContext(input_frac_coords, input_lattice, requires_grad=True):
                 pred_e = (self.decoder(time_emb, batch.atom_types, input_frac_coords, input_lattice, batch.num_atoms, batch.batch))
-                atoms_batch_id = torch.arange(input_lattice.shape[0],device=input_lattice.device).repeat_interleave((batch.num_atoms),dim=0)
-                energy_per_structure = _scatter_add(pred_e,atoms_batch_id)
                 # grad_f, grad_l = grad(pred_e, [input_frac_coords,input_lattice], grad_outputs = grad_outputs,create_graph=True,allow_unused=True)
                 grad_f, grad_l = grad([pred_e.sum()], [input_frac_coords,input_lattice],create_graph=True,allow_unused=True)
         loss_lattice = F.mse_loss(torch.tril(-grad_l), torch.tril(lattices-rand_l))
@@ -584,7 +582,7 @@ class CSPEnergyMatching(BaseModule):
         if self.i%32==0:
             print(-grad_l[0].flatten(),(lattices-rand_l)[0].flatten(),sep="\n")
             print(-grad_x[0].flatten(),self.wrapped_distance_vector(rand_x,frac_coords)[0].flatten(),sep="\n")
-            print(energy_per_structure.flatten())
+            print(pred_e.flatten())
             
 
         loss = (
