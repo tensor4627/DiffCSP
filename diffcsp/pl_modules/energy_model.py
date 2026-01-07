@@ -571,10 +571,13 @@ class CSPEnergyMatching(BaseModule):
                 grad_f, grad_l = grad(pred_e, [input_frac_coords,input_lattice], grad_outputs = grad_outputs,create_graph=True,allow_unused=True)
         loss_lattice = F.mse_loss(torch.tril(-grad_l), torch.tril(lattices-rand_l))
         self.i+=1
+        grad_x = (grad_f.view(-1,1,3)@input_lattice.detach().transpose(-1,-2).repeat_interleave(batch.num_atoms,dim=0)).squeeze(1)
+        loss_coord = F.mse_loss((-grad_x), self.wrapped_distance_vector(rand_x,frac_coords))
         if self.i%32==0:
-            print(-grad_l,lattices-rand_l)
-        grad_x = grad_f.view(-1,1,3)@input_lattice.detach().transpose(-1,-2).repeat_interleave(batch.num_atoms,dim=0)
-        loss_coord = F.mse_loss((-grad_x.squeeze(1)), self.wrapped_distance_vector(rand_x,frac_coords))
+            print(-grad_l[0].flatten(),(lattices-rand_l)[0].flatten(),sep="\n")
+            print(-grad_x[0].flatten(),self.wrapped_distance_vector(rand_x,frac_coords)[0].flatten(),sep="\n")
+            print(pred_e)
+            
 
         loss = (
             self.hparams.cost_lattice * loss_lattice +
