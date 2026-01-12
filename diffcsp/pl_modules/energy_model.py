@@ -453,6 +453,14 @@ class CSPEnergyMatching(BaseModule):
         self.sigma_scheduler = hydra.utils.instantiate(self.hparams.sigma_scheduler)
         self.time_dim = self.hparams.time_dim
         self.time_steps = self.hparams.timesteps
+        self.learning_stage = self.hparams.learning_stage
+        if self.learning_stage == "energy":
+            self.dt = self.hparams.dt
+            self.langevin_steps=self.hparams.langevin_steps
+            self.lambda_cd = self.hparams.lambda_cd
+        else:
+            self.dt = None
+            self.langevin_steps=None
         self.time_embedding = SinusoidalTimeEmbeddings(self.time_dim)
         self.keep_lattice = self.hparams.cost_lattice < 1e-5
         self.keep_coords = self.hparams.cost_coord < 1e-5
@@ -548,6 +556,12 @@ class CSPEnergyMatching(BaseModule):
 
 
     def forward(self, batch):
+        if self.learning_stage == "flow":
+            return self.flow(batch)
+        else:
+            return self.flow(batch)
+
+    def flow(self,batch):
         batch_size = batch.num_graphs
         times = self.beta_scheduler.uniform_sample_t(batch_size, self.device)
         time_emb = self.time_embedding(times)
@@ -567,8 +581,6 @@ class CSPEnergyMatching(BaseModule):
         if self.keep_lattice:
             input_lattice = lattices
 
-
-
         #pred_e = self.decoder(time_emb, batch.atom_types, input_frac_coords, input_lattice, batch.num_atoms, batch.batch)
         with torch.enable_grad():
             with RequiresGradContext(input_frac_coords, input_lattice, requires_grad=True):
@@ -579,11 +591,6 @@ class CSPEnergyMatching(BaseModule):
         self.i+=1
         grad_x = (grad_f.view(-1,1,3)@input_lattice.detach().transpose(-1,-2).repeat_interleave(batch.num_atoms,dim=0)).squeeze(1)
         loss_coord = F.mse_loss((-grad_x), self.wrapped_distance_vector(rand_x,frac_coords))
-        if self.i%32==0:
-            print(-grad_l[0].flatten(),(lattices-rand_l)[0].flatten(),sep="\n")
-            print(-grad_x[0].flatten(),self.wrapped_distance_vector(rand_x,frac_coords)[0].flatten(),sep="\n")
-            print(pred_e.flatten())
-            
 
         loss = (
             self.hparams.cost_lattice * loss_lattice +
@@ -595,6 +602,48 @@ class CSPEnergyMatching(BaseModule):
             'loss_coord' : loss_coord
         }
 
+    def get_forces(self,pos,cell,batch,time_emb):
+        with torch.enable_grad():
+            with RequiresGradContext(pos, cell, requires_grad=True):
+                pred_e = (self.decoder(time_emb, batch.atom_types, pos,cell, batch.num_atoms, batch.batch))
+                # grad_f, grad_l = grad(pred_e, [input_frac_coords,input_lattice], grad_outputs = grad_outputs,create_graph=True,allow_unused=True)
+                grad_f, grad_l = grad([pred_e.sum()], [pos,cell],create_graph=True,allow_unused=True)
+                # grad_x = (grad_f.view(-1,1,3)@cell.detach().transpose(-1,-2).repeat_interleave(batch.num_atoms,dim=0)).squeeze(1)
+        return -grad_f,-grad_l,pred_e
+    
+    def langevin_step(self,pos,cell,batch,time_emb,step_size,std):
+        tpos = pos.clone().detach()
+        tcell = cell.clone().detach()
+        fpos_forces,lattice_forces,_ = self.get_forces(tpos,tcell,batch,time_emb)
+        pos = pos + step_size * fpos_forces + std * torch.randn_like(pos)
+        cell=cell + step_size * lattice_forces + std * torch.randn_like(cell)
+        return pos,cell
+    
+    def energy_matching(self,batch):
+        flow_loss = self.flow(batch)
+        batch_size = batch.num_graphs
+        # times = self.beta_scheduler.uniform_sample_t(batch_size, self.device)
+        rand_times = self.beta_scheduler.uniform_sample_t(batch_size, self.device)
+        times = torch.ones_like(rand_times)*rand_times.max()
+        time_emb = self.time_embedding(times)
+
+        lattices = lattice_params_to_matrix_torch(batch.lengths, batch.angles)
+        frac_coords = batch.frac_coords
+
+        # rand_x,rand_l = self.get_static_noise(frac_coords,lattices,mode="log")#negative sampling
+        lattices,_ = self.rot_tril(lattices)
+
+        l_pos = frac_coords.clone().detach()
+        l_cell = lattices.clone().detach()
+        for i in range(self.langevin_steps):
+            l_pos,l_cell = self.langevin_step(l_pos,l_cell,batch,time_emb,step_size=self.dt,std=torch.sqrt(2*self.dt))
+        _,_,neg_e = self.get_forces(l_pos,l_cell,batch,time_emb)
+        _,_,pos_e = self.get_forces(frac_coords,lattices,batch,time_emb)
+        energy_loss = torch.mean(pos_e)-torch.mean(neg_e)
+        flow_loss["loss_energy"] = energy_loss
+        flow_loss["loss"]+=energy_loss
+        return flow_loss
+    
     @torch.no_grad()
     def sample(self, batch, uncod, diff_ratio = 1.0, step_lr = 1e-5, aug = 1.0):
 
