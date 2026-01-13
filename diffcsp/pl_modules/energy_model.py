@@ -642,6 +642,8 @@ class CSPEnergyMatching(BaseModule):
         energy_loss = torch.mean(pos_e)-torch.mean(neg_e)
         flow_loss["loss_energy"] = energy_loss
         flow_loss["loss"]+=energy_loss
+        if self.i%24==0:
+            print(flow_loss)
         return flow_loss
     
     @torch.no_grad()
@@ -881,7 +883,8 @@ class CSPEnergyMatching(BaseModule):
         self.log_dict(
             {'train_loss': loss,
             'lattice_loss': loss_lattice,
-            'coord_loss': loss_coord},
+            'coord_loss': loss_coord,
+            'energy_loss': output_dict.get('loss_energy', torch.tensor(0.0))},
             on_step=True,
             on_epoch=True,
             prog_bar=True,
