@@ -559,7 +559,7 @@ class CSPEnergyMatching(BaseModule):
         if self.learning_stage == "flow":
             return self.flow(batch)
         else:
-            return self.flow(batch)
+            return self.energy_matching(batch)
 
     def flow(self,batch):
         batch_size = batch.num_graphs
