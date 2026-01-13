@@ -636,7 +636,7 @@ class CSPEnergyMatching(BaseModule):
         l_pos = frac_coords.clone().detach()
         l_cell = lattices.clone().detach()
         for i in range(self.langevin_steps):
-            l_pos,l_cell = self.langevin_step(l_pos,l_cell,batch,time_emb,step_size=self.dt,std=torch.sqrt(2*self.dt))
+            l_pos,l_cell = self.langevin_step(l_pos,l_cell,batch,time_emb,step_size=self.dt,std=(2*self.dt)**0.5)
         _,_,neg_e = self.get_forces(l_pos,l_cell,batch,time_emb)
         _,_,pos_e = self.get_forces(frac_coords,lattices,batch,time_emb)
         energy_loss = torch.mean(pos_e)-torch.mean(neg_e)
