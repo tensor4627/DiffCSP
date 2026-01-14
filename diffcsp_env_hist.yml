@@ -1,7 +1,0 @@
-name: diffcsp
-channels:
-  - defaults
-dependencies:
-  - python==3.8.18
-  - pyshtools
-prefix: /home/genshin/anaconda3/envs/diffcsp

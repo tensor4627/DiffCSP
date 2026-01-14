@@ -559,7 +559,7 @@ class CSPEnergyMatching(BaseModule):
         if self.learning_stage == "flow":
             return self.flow(batch)
         else:
-            return self.flow(batch)
+            return self.energy_matching(batch)
 
     def flow(self,batch):
         batch_size = batch.num_graphs
@@ -599,7 +599,8 @@ class CSPEnergyMatching(BaseModule):
         return {
             'loss' : loss,
             'loss_lattice' : loss_lattice,
-            'loss_coord' : loss_coord
+            'loss_coord' : loss_coord,
+            'loss_energy': torch.zeros_like(loss_coord)
         }
 
     def get_forces(self,pos,cell,batch,time_emb):
@@ -636,14 +637,12 @@ class CSPEnergyMatching(BaseModule):
         l_pos = frac_coords.clone().detach()
         l_cell = lattices.clone().detach()
         for i in range(self.langevin_steps):
-            l_pos,l_cell = self.langevin_step(l_pos,l_cell,batch,time_emb,step_size=self.dt,std=torch.sqrt(2*self.dt))
+            l_pos,l_cell = self.langevin_step(l_pos.detach(),l_cell.detach(),batch,time_emb,step_size=self.dt,std=(2*self.dt)**0.5)
         _,_,neg_e = self.get_forces(l_pos,l_cell,batch,time_emb)
         _,_,pos_e = self.get_forces(frac_coords,lattices,batch,time_emb)
         energy_loss = torch.mean(pos_e)-torch.mean(neg_e)
         flow_loss["loss_energy"] = energy_loss
         flow_loss["loss"]+=energy_loss
-        if self.i%24==0:
-            print(flow_loss)
         return flow_loss
     
     @torch.no_grad()
@@ -872,7 +871,10 @@ class CSPEnergyMatching(BaseModule):
 
 
     def training_step(self, batch: Any, batch_idx: int) -> torch.Tensor:
-
+        if batch_idx==0:
+            self.i+=1
+        if self.i>=3000:
+            self.learning_stage="energy"
         output_dict = self(batch)
 
         loss_lattice = output_dict['loss_lattice']
@@ -925,11 +927,13 @@ class CSPEnergyMatching(BaseModule):
         loss_lattice = output_dict['loss_lattice']
         loss_coord = output_dict['loss_coord']
         loss = output_dict['loss']
+        loss_ene=output_dict['loss_energy']
 
         log_dict = {
             f'{prefix}_loss': loss,
             f'{prefix}_lattice_loss': loss_lattice,
-            f'{prefix}_coord_loss': loss_coord
+            f'{prefix}_coord_loss': loss_coord,
+            f'{prefix}_ene_loss': loss_ene
         }
 
         return log_dict, loss
