@@ -1,0 +1,13 @@
+#!/bin/bash
+#BSUB -q 734090ib
+#BSUB -gpu "num=1:aff=yes"
+#BSUB -J energy
+#BSUB -o out
+#BSUB -e err
+module load anaconda/3-5.0.1
+module load cuda/12.3.1
+source activate diffcsp
+export OMP_NUM_THREADS=1
+export HYDRA_FULL_ERROR=1
+python3 diffcsp/run2.py data=carbon_24 data.train_max_epochs=3000 model=energy_matching model.cost_coord=10 model.cost_lattice=1 expname=c24-eflow-1-15
+

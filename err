@@ -1,0 +1,642 @@
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/lightning_fabric/__init__.py:29: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  __import__("pkg_resources").declare_namespace(__name__)
+/fsb/home/jiansun/js_zhanght/DiffCSP/diffcsp/run2.py:176: UserWarning: 
+The version_base parameter is not specified.
+Please specify a compatability version level, or None.
+Will assume defaults for version 1.1
+  @hydra.main(config_path=str(PROJECT_ROOT / "conf"), config_name="default")
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/_internal/defaults_list.py:251: UserWarning: In 'default': Defaults list is missing `_self_`. See https://hydra.cc/docs/1.2/upgrades/1.0_to_1.1/default_composition_order for more information
+  warnings.warn(msg, UserWarning)
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/_internal/hydra.py:119: UserWarning: Future Hydra versions will no longer change working directory at job runtime by default.
+See https://hydra.cc/docs/1.2/upgrades/1.1_to_1.2/changes_to_job_working_dir/ for more information.
+  ret = run_job(
+Global seed set to 42
+/fsb/home/jiansun/js_zhanght/DiffCSP/./diffcsp/pl_data/datamodule.py:152: UserWarning: 
+The version_base parameter is not specified.
+Please specify a compatability version level, or None.
+Will assume defaults for version 1.1
+  @hydra.main(config_path=str(PROJECT_ROOT / "conf"), config_name="default")
+/fsb/home/jiansun/js_zhanght/DiffCSP/./diffcsp/pl_data/dataset.py:155: UserWarning: 
+The version_base parameter is not specified.
+Please specify a compatability version level, or None.
+Will assume defaults for version 1.1
+  @hydra.main(config_path=str(PROJECT_ROOT / "conf"), config_name="default")
+/fsb/home/jiansun/js_zhanght/DiffCSP/./diffcsp/pl_data/dataset.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.cached_data = torch.load(save_path)
+/fsb/home/jiansun/js_zhanght/DiffCSP/./diffcsp/common/data_utils.py:1151: UserWarning: Creating a tensor from a list of numpy.ndarrays is extremely slow. Please consider converting the list to a single numpy.ndarray with numpy.array() before converting to a tensor. (Triggered internally at ../torch/csrc/utils/tensor_new.cpp:278.)
+  targets = torch.tensor([d[key] for d in data_list])
+/fsb/home/jiansun/js_zhanght/DiffCSP/./diffcsp/common/data_utils.py:1119: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  X = torch.tensor(X, dtype=torch.float)
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/wandb/apis/public.py:3109: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import parse_version
+wandb: WARNING `resume` will be ignored since W&B syncing is set to `offline`. Starting a new run with run id omgw4civ.
+wandb: Tracking run with wandb version 0.15.0
+wandb: W&B syncing is set to `offline` in this directory.  
+wandb: Run `wandb online` or set WANDB_MODE=online to enable cloud syncing.
+wandb: logging graph, to disable use `wandb.watch(log_graph=False)`
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/trainer/connectors/accelerator_connector.py:467: LightningDeprecationWarning: Setting `Trainer(gpus=1)` is deprecated in v1.7 and will be removed in v2.0. Please use `Trainer(accelerator='gpu', devices=1)` instead.
+  rank_zero_deprecation(
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+IPU available: False, using: 0 IPUs
+HPU available: False, using: 0 HPUs
+You are using a CUDA device ('NVIDIA GeForce RTX 4090') that has Tensor Cores. To properly utilize them, you should set `torch.set_float32_matmul_precision('medium' | 'high')` which will trade-off precision for performance. For more details, read https://pytorch.org/docs/stable/generated/torch.set_float32_matmul_precision.html#torch.set_float32_matmul_precision
+/fsb/home/jiansun/js_zhanght/DiffCSP/./diffcsp/pl_data/dataset.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.cached_data = torch.load(save_path)
+/fsb/home/jiansun/js_zhanght/DiffCSP/./diffcsp/pl_data/dataset.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.cached_data = torch.load(save_path)
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/callbacks/model_checkpoint.py:612: UserWarning: Checkpoint directory /fsb/home/jiansun/js_zhanght/DiffCSP/result/singlerun/2026-01-15/c24-eflow-1-15 exists and is not empty.
+  rank_zero_warn(f"Checkpoint directory {dirpath} exists and is not empty.")
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/core/optimizer.py:384: RuntimeWarning: Found unsupported keys in the optimizer configuration: {'interval'}
+  rank_zero_warn(
+
+  | Name            | Type                     | Params
+-------------------------------------------------------------
+0 | decoder         | CSPNet                   | 12.3 M
+1 | beta_scheduler  | BetaScheduler            | 0     
+2 | sigma_scheduler | SigmaScheduler           | 0     
+3 | time_embedding  | SinusoidalTimeEmbeddings | 0     
+-------------------------------------------------------------
+12.3 M    Trainable params
+0         Non-trainable params
+12.3 M    Total params
+49.181    Total estimated model params size (MB)
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/lightning_fabric/utilities/data.py:323: UserWarning: 'data.DataLoader' is deprecated, use 'loader.DataLoader' instead
+  init(obj, *args, **kwargs)
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/utilities/data.py:84: UserWarning: Trying to infer the `batch_size` from an ambiguous collection. The batch size we found is 2. To avoid any miscalculations, use `self.log(..., batch_size=batch_size)`.
+  warning_cache.warn(
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py:1600: PossibleUserWarning: The number of training batches (48) is smaller than the logging interval Trainer(log_every_n_steps=50). Set a lower value for log_every_n_steps if you want to see logs for the training epoch.
+  rank_zero_warn(
+Error executing job with overrides: ['data=carbon_24', 'data.train_max_epochs=2000', 'model=energy_matching', 'model.cost_coord=10', 'model.cost_lattice=1', 'expname=c24-eflow-1-15']
+Traceback (most recent call last):
+  File "/fsb/home/jiansun/js_zhanght/DiffCSP/diffcsp/run2.py", line 182, in <module>
+    main()
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/main.py", line 94, in decorated_main
+    _run_hydra(
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/_internal/utils.py", line 394, in _run_hydra
+    _run_app(
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/_internal/utils.py", line 457, in _run_app
+    run_and_report(
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/_internal/utils.py", line 223, in run_and_report
+    raise ex
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/_internal/utils.py", line 220, in run_and_report
+    return func()
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/_internal/utils.py", line 458, in <lambda>
+    lambda: hydra.run(
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/_internal/hydra.py", line 132, in run
+    _ = ret.return_value
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/core/utils.py", line 260, in return_value
+    raise self._return_value
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/core/utils.py", line 186, in run_job
+    ret.return_value = task_function(task_cfg)
+  File "/fsb/home/jiansun/js_zhanght/DiffCSP/diffcsp/run2.py", line 178, in main
+    run(cfg)
+  File "/fsb/home/jiansun/js_zhanght/DiffCSP/diffcsp/run2.py", line 166, in run
+    trainer.fit(model=model, datamodule=datamodule)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 608, in fit
+    call._call_and_handle_interrupt(
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/trainer/call.py", line 38, in _call_and_handle_interrupt
+    return trainer_fn(*args, **kwargs)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 650, in _fit_impl
+    self._run(model, ckpt_path=self.ckpt_path)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 1103, in _run
+    results = self._run_stage()
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 1182, in _run_stage
+    self._run_train()
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 1205, in _run_train
+    self.fit_loop.run()
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/loops/loop.py", line 199, in run
+    self.advance(*args, **kwargs)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/loops/fit_loop.py", line 267, in advance
+    self._outputs = self.epoch_loop.run(self._data_fetcher)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/loops/loop.py", line 199, in run
+    self.advance(*args, **kwargs)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/loops/epoch/training_epoch_loop.py", line 213, in advance
+    batch_output = self.batch_loop.run(kwargs)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/loops/loop.py", line 199, in run
+    self.advance(*args, **kwargs)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/loops/batch/training_batch_loop.py", line 88, in advance
+    outputs = self.optimizer_loop.run(optimizers, kwargs)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/loops/loop.py", line 199, in run
+    self.advance(*args, **kwargs)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/loops/optimization/optimizer_loop.py", line 202, in advance
+    result = self._run_optimization(kwargs, self._optimizers[self.optim_progress.optimizer_position])
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/loops/optimization/optimizer_loop.py", line 249, in _run_optimization
+    self._optimizer_step(optimizer, opt_idx, kwargs.get("batch_idx", 0), closure)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/loops/optimization/optimizer_loop.py", line 370, in _optimizer_step
+    self.trainer._call_lightning_module_hook(
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 1347, in _call_lightning_module_hook
+    output = fn(*args, **kwargs)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/core/module.py", line 1744, in optimizer_step
+    optimizer.step(closure=optimizer_closure)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/core/optimizer.py", line 169, in step
+    step_output = self._strategy.optimizer_step(self._optimizer, self._optimizer_idx, closure, **kwargs)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/strategies/strategy.py", line 234, in optimizer_step
+    return self.precision_plugin.optimizer_step(
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/plugins/precision/precision_plugin.py", line 119, in optimizer_step
+    return optimizer.step(closure=closure, **kwargs)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/torch/optim/optimizer.py", line 487, in wrapper
+    out = func(*args, **kwargs)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/torch/optim/optimizer.py", line 91, in _use_grad
+    ret = func(self, *args, **kwargs)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/torch/optim/adam.py", line 202, in step
+    loss = closure()
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/plugins/precision/precision_plugin.py", line 105, in _wrap_closure
+    closure_result = closure()
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/loops/optimization/optimizer_loop.py", line 149, in __call__
+    self._result = self.closure(*args, **kwargs)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/loops/optimization/optimizer_loop.py", line 135, in closure
+    step_output = self._step_fn()
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/loops/optimization/optimizer_loop.py", line 419, in _training_step
+    training_step_output = self.trainer._call_strategy_hook("training_step", *kwargs.values())
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 1485, in _call_strategy_hook
+    output = fn(*args, **kwargs)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/strategies/strategy.py", line 378, in training_step
+    return self.model.training_step(*args, **kwargs)
+  File "/fsb/home/jiansun/js_zhanght/DiffCSP/./diffcsp/pl_modules/energy_model.py", line 885, in training_step
+    output_dict = self(batch)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1844, in _call_impl
+    return inner()
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1790, in inner
+    result = forward_call(*args, **kwargs)
+  File "/fsb/home/jiansun/js_zhanght/DiffCSP/./diffcsp/pl_modules/energy_model.py", line 569, in forward
+    return self.energy_matching(batch)
+  File "/fsb/home/jiansun/js_zhanght/DiffCSP/./diffcsp/pl_modules/energy_model.py", line 646, in energy_matching
+    for i in range(self.langevin_steps):
+TypeError: 'NoneType' object cannot be interpreted as an integer
+wandb: Waiting for W&B process to finish... (failed 1).
+wandb: 
+wandb: Run history:
+wandb:    coord_loss_epoch █▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:     coord_loss_step ▅▄▁▄▆▅▄█▆▇▅▆▄▃
+wandb:   energy_loss_epoch ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:    energy_loss_step ▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:               epoch ▁▁▁▁▁▂▂▂▃▃▃▃▃▃▃▃▄▄▄▅▅▅▅▅▅▅▅▆▆▆▇▇▇▇▇▇▇▇██
+wandb:  lattice_loss_epoch █▄▄▆▃▄▃▄▆▂▇▆▁▂▂
+wandb:   lattice_loss_step ▃▁▅▅▅▄▂▁▁▄█▂▃▁
+wandb:             lr-Adam ▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:    train_loss_epoch █▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:     train_loss_step ▃▁▅▅▅▄▂▂▂▄█▂▃▁
+wandb: trainer/global_step ▁▁▁▁▁▂▂▂▂▃▃▃▃▃▃▄▄▄▄▅▅▅▅▅▅▅▆▆▆▆▇▇▇▇▇▇▇███
+wandb:      val_coord_loss █▃▇▇▅▃█▄▅▆▅▂▁▄▁
+wandb:        val_ene_loss ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:    val_lattice_loss ▁▃▆▄▅▄▆█▆▆▄▅▆▃▆
+wandb:            val_loss ▁▂▆▅▅▃▆█▆▆▄▃▅▃▅
+wandb: 
+wandb: Run summary:
+wandb:    coord_loss_epoch 0.08349
+wandb:     coord_loss_step 0.08199
+wandb:   energy_loss_epoch 0.0
+wandb:    energy_loss_step 0.0
+wandb:               epoch 14
+wandb:  lattice_loss_epoch 1.8659
+wandb:   lattice_loss_step 1.74822
+wandb:             lr-Adam 0.001
+wandb:    train_loss_epoch 2.70082
+wandb:     train_loss_step 2.56813
+wandb: trainer/global_step 719
+wandb:      val_coord_loss 0.0826
+wandb:        val_ene_loss 0.0
+wandb:    val_lattice_loss 1.8648
+wandb:            val_loss 2.69082
+wandb: 
+wandb: You can sync this run to the cloud by running:
+wandb: wandb sync ./wandb/offline-run-20260115_181658-omgw4civ
+wandb: Find logs at: ./wandb/offline-run-20260115_181658-omgw4civ/logs
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/lightning_fabric/__init__.py:29: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  __import__("pkg_resources").declare_namespace(__name__)
+/fsb/home/jiansun/js_zhanght/DiffCSP/diffcsp/run2.py:176: UserWarning: 
+The version_base parameter is not specified.
+Please specify a compatability version level, or None.
+Will assume defaults for version 1.1
+  @hydra.main(config_path=str(PROJECT_ROOT / "conf"), config_name="default")
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/_internal/defaults_list.py:251: UserWarning: In 'default': Defaults list is missing `_self_`. See https://hydra.cc/docs/1.2/upgrades/1.0_to_1.1/default_composition_order for more information
+  warnings.warn(msg, UserWarning)
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/_internal/hydra.py:119: UserWarning: Future Hydra versions will no longer change working directory at job runtime by default.
+See https://hydra.cc/docs/1.2/upgrades/1.1_to_1.2/changes_to_job_working_dir/ for more information.
+  ret = run_job(
+Global seed set to 42
+/fsb/home/jiansun/js_zhanght/DiffCSP/./diffcsp/pl_data/datamodule.py:152: UserWarning: 
+The version_base parameter is not specified.
+Please specify a compatability version level, or None.
+Will assume defaults for version 1.1
+  @hydra.main(config_path=str(PROJECT_ROOT / "conf"), config_name="default")
+/fsb/home/jiansun/js_zhanght/DiffCSP/./diffcsp/pl_data/dataset.py:155: UserWarning: 
+The version_base parameter is not specified.
+Please specify a compatability version level, or None.
+Will assume defaults for version 1.1
+  @hydra.main(config_path=str(PROJECT_ROOT / "conf"), config_name="default")
+/fsb/home/jiansun/js_zhanght/DiffCSP/./diffcsp/pl_data/dataset.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.cached_data = torch.load(save_path)
+/fsb/home/jiansun/js_zhanght/DiffCSP/./diffcsp/common/data_utils.py:1151: UserWarning: Creating a tensor from a list of numpy.ndarrays is extremely slow. Please consider converting the list to a single numpy.ndarray with numpy.array() before converting to a tensor. (Triggered internally at ../torch/csrc/utils/tensor_new.cpp:278.)
+  targets = torch.tensor([d[key] for d in data_list])
+/fsb/home/jiansun/js_zhanght/DiffCSP/./diffcsp/common/data_utils.py:1119: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  X = torch.tensor(X, dtype=torch.float)
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/wandb/apis/public.py:3109: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import parse_version
+wandb: WARNING `resume` will be ignored since W&B syncing is set to `offline`. Starting a new run with run id 0f6suvuj.
+wandb: Tracking run with wandb version 0.15.0
+wandb: W&B syncing is set to `offline` in this directory.  
+wandb: Run `wandb online` or set WANDB_MODE=online to enable cloud syncing.
+wandb: logging graph, to disable use `wandb.watch(log_graph=False)`
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/trainer/connectors/accelerator_connector.py:467: LightningDeprecationWarning: Setting `Trainer(gpus=1)` is deprecated in v1.7 and will be removed in v2.0. Please use `Trainer(accelerator='gpu', devices=1)` instead.
+  rank_zero_deprecation(
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+IPU available: False, using: 0 IPUs
+HPU available: False, using: 0 HPUs
+You are using a CUDA device ('NVIDIA GeForce RTX 4090') that has Tensor Cores. To properly utilize them, you should set `torch.set_float32_matmul_precision('medium' | 'high')` which will trade-off precision for performance. For more details, read https://pytorch.org/docs/stable/generated/torch.set_float32_matmul_precision.html#torch.set_float32_matmul_precision
+/fsb/home/jiansun/js_zhanght/DiffCSP/./diffcsp/pl_data/dataset.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.cached_data = torch.load(save_path)
+/fsb/home/jiansun/js_zhanght/DiffCSP/./diffcsp/pl_data/dataset.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.cached_data = torch.load(save_path)
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/callbacks/model_checkpoint.py:612: UserWarning: Checkpoint directory /fsb/home/jiansun/js_zhanght/DiffCSP/result/singlerun/2026-01-15/c24-eflow-1-15 exists and is not empty.
+  rank_zero_warn(f"Checkpoint directory {dirpath} exists and is not empty.")
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/core/optimizer.py:384: RuntimeWarning: Found unsupported keys in the optimizer configuration: {'interval'}
+  rank_zero_warn(
+
+  | Name            | Type                     | Params
+-------------------------------------------------------------
+0 | decoder         | CSPNet                   | 12.3 M
+1 | beta_scheduler  | BetaScheduler            | 0     
+2 | sigma_scheduler | SigmaScheduler           | 0     
+3 | time_embedding  | SinusoidalTimeEmbeddings | 0     
+-------------------------------------------------------------
+12.3 M    Trainable params
+0         Non-trainable params
+12.3 M    Total params
+49.181    Total estimated model params size (MB)
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/lightning_fabric/utilities/data.py:323: UserWarning: 'data.DataLoader' is deprecated, use 'loader.DataLoader' instead
+  init(obj, *args, **kwargs)
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/utilities/data.py:84: UserWarning: Trying to infer the `batch_size` from an ambiguous collection. The batch size we found is 2. To avoid any miscalculations, use `self.log(..., batch_size=batch_size)`.
+  warning_cache.warn(
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py:1600: PossibleUserWarning: The number of training batches (48) is smaller than the logging interval Trainer(log_every_n_steps=50). Set a lower value for log_every_n_steps if you want to see logs for the training epoch.
+  rank_zero_warn(
+
+Aborted!
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/trainer/call.py:48: UserWarning: Detected KeyboardInterrupt, attempting graceful shutdown...
+  rank_zero_warn("Detected KeyboardInterrupt, attempting graceful shutdown...")
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/trainer/connectors/checkpoint_connector.py:124: UserWarning: `.test(ckpt_path=None)` was called without a model. The best model of the previous `fit` call will be used. You can pass `.test(ckpt_path='best')` to use the best model or `.test(ckpt_path='last')` to use the last model. If you pass a value, this warning will be silenced.
+  rank_zero_warn(
+You are using a CUDA device ('NVIDIA GeForce RTX 4090') that has Tensor Cores. To properly utilize them, you should set `torch.set_float32_matmul_precision('medium' | 'high')` which will trade-off precision for performance. For more details, read https://pytorch.org/docs/stable/generated/torch.set_float32_matmul_precision.html#torch.set_float32_matmul_precision
+/fsb/home/jiansun/js_zhanght/DiffCSP/./diffcsp/pl_data/dataset.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.cached_data = torch.load(save_path)
+Restoring states from the checkpoint path at /fsb/home/jiansun/js_zhanght/DiffCSP/result/singlerun/2026-01-15/c24-eflow-1-15/epoch=0-step=48-v3.ckpt
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/lightning_fabric/utilities/cloud_io.py:48: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  return torch.load(f, map_location=map_location)
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+Loaded model weights from checkpoint at /fsb/home/jiansun/js_zhanght/DiffCSP/result/singlerun/2026-01-15/c24-eflow-1-15/epoch=0-step=48-v3.ckpt
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/lightning_fabric/utilities/data.py:323: UserWarning: 'data.DataLoader' is deprecated, use 'loader.DataLoader' instead
+  init(obj, *args, **kwargs)
+Error executing job with overrides: ['data=carbon_24', 'data.train_max_epochs=2000', 'model=energy_matching', 'model.cost_coord=10', 'model.cost_lattice=1', 'expname=c24-eflow-1-15']
+Traceback (most recent call last):
+  File "/fsb/home/jiansun/js_zhanght/DiffCSP/diffcsp/run2.py", line 182, in <module>
+    main()
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/main.py", line 94, in decorated_main
+    _run_hydra(
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/_internal/utils.py", line 394, in _run_hydra
+    _run_app(
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/_internal/utils.py", line 457, in _run_app
+    run_and_report(
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/_internal/utils.py", line 223, in run_and_report
+    raise ex
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/_internal/utils.py", line 220, in run_and_report
+    return func()
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/_internal/utils.py", line 458, in <lambda>
+    lambda: hydra.run(
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/_internal/hydra.py", line 132, in run
+    _ = ret.return_value
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/core/utils.py", line 260, in return_value
+    raise self._return_value
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/core/utils.py", line 186, in run_job
+    ret.return_value = task_function(task_cfg)
+  File "/fsb/home/jiansun/js_zhanght/DiffCSP/diffcsp/run2.py", line 178, in main
+    run(cfg)
+  File "/fsb/home/jiansun/js_zhanght/DiffCSP/diffcsp/run2.py", line 169, in run
+    trainer.test(datamodule=datamodule)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 785, in test
+    return call._call_and_handle_interrupt(
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/trainer/call.py", line 38, in _call_and_handle_interrupt
+    return trainer_fn(*args, **kwargs)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 834, in _test_impl
+    results = self._run(model, ckpt_path=self.ckpt_path)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 1103, in _run
+    results = self._run_stage()
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 1179, in _run_stage
+    return self._run_evaluate()
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 1219, in _run_evaluate
+    eval_loop_results = self._evaluation_loop.run()
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/loops/loop.py", line 199, in run
+    self.advance(*args, **kwargs)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/loops/dataloader/evaluation_loop.py", line 152, in advance
+    dl_outputs = self.epoch_loop.run(self._data_fetcher, dl_max_batches, kwargs)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/loops/loop.py", line 199, in run
+    self.advance(*args, **kwargs)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/loops/epoch/evaluation_epoch_loop.py", line 137, in advance
+    output = self._evaluation_step(**kwargs)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/loops/epoch/evaluation_epoch_loop.py", line 234, in _evaluation_step
+    output = self.trainer._call_strategy_hook(hook_name, *kwargs.values())
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 1485, in _call_strategy_hook
+    output = fn(*args, **kwargs)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/strategies/strategy.py", line 399, in test_step
+    return self.model.test_step(*args, **kwargs)
+  File "/fsb/home/jiansun/js_zhanght/DiffCSP/./diffcsp/pl_modules/energy_model.py", line 921, in test_step
+    output_dict = self(batch)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1844, in _call_impl
+    return inner()
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1790, in inner
+    result = forward_call(*args, **kwargs)
+  File "/fsb/home/jiansun/js_zhanght/DiffCSP/./diffcsp/pl_modules/energy_model.py", line 563, in forward
+    return self.flow(batch)
+  File "/fsb/home/jiansun/js_zhanght/DiffCSP/./diffcsp/pl_modules/energy_model.py", line 592, in flow
+    grad_f, grad_l = grad([pred_e.sum()], [input_frac_coords,input_lattice],create_graph=True,allow_unused=True)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/torch/autograd/__init__.py", line 496, in grad
+    result = _engine_run_backward(
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/torch/autograd/graph.py", line 825, in _engine_run_backward
+    return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+RuntimeError: element 0 of tensors does not require grad and does not have a grad_fn
+Terminated
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/lightning_fabric/__init__.py:29: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  __import__("pkg_resources").declare_namespace(__name__)
+/fsb/home/jiansun/js_zhanght/DiffCSP/diffcsp/run2.py:176: UserWarning: 
+The version_base parameter is not specified.
+Please specify a compatability version level, or None.
+Will assume defaults for version 1.1
+  @hydra.main(config_path=str(PROJECT_ROOT / "conf"), config_name="default")
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/_internal/defaults_list.py:251: UserWarning: In 'default': Defaults list is missing `_self_`. See https://hydra.cc/docs/1.2/upgrades/1.0_to_1.1/default_composition_order for more information
+  warnings.warn(msg, UserWarning)
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/_internal/hydra.py:119: UserWarning: Future Hydra versions will no longer change working directory at job runtime by default.
+See https://hydra.cc/docs/1.2/upgrades/1.1_to_1.2/changes_to_job_working_dir/ for more information.
+  ret = run_job(
+Global seed set to 42
+/fsb/home/jiansun/js_zhanght/DiffCSP/./diffcsp/pl_data/datamodule.py:152: UserWarning: 
+The version_base parameter is not specified.
+Please specify a compatability version level, or None.
+Will assume defaults for version 1.1
+  @hydra.main(config_path=str(PROJECT_ROOT / "conf"), config_name="default")
+/fsb/home/jiansun/js_zhanght/DiffCSP/./diffcsp/pl_data/dataset.py:155: UserWarning: 
+The version_base parameter is not specified.
+Please specify a compatability version level, or None.
+Will assume defaults for version 1.1
+  @hydra.main(config_path=str(PROJECT_ROOT / "conf"), config_name="default")
+/fsb/home/jiansun/js_zhanght/DiffCSP/./diffcsp/pl_data/dataset.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.cached_data = torch.load(save_path)
+/fsb/home/jiansun/js_zhanght/DiffCSP/./diffcsp/common/data_utils.py:1151: UserWarning: Creating a tensor from a list of numpy.ndarrays is extremely slow. Please consider converting the list to a single numpy.ndarray with numpy.array() before converting to a tensor. (Triggered internally at ../torch/csrc/utils/tensor_new.cpp:278.)
+  targets = torch.tensor([d[key] for d in data_list])
+/fsb/home/jiansun/js_zhanght/DiffCSP/./diffcsp/common/data_utils.py:1119: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  X = torch.tensor(X, dtype=torch.float)
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/wandb/apis/public.py:3109: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import parse_version
+wandb: WARNING `resume` will be ignored since W&B syncing is set to `offline`. Starting a new run with run id 5phfsl3y.
+wandb: Tracking run with wandb version 0.15.0
+wandb: W&B syncing is set to `offline` in this directory.  
+wandb: Run `wandb online` or set WANDB_MODE=online to enable cloud syncing.
+wandb: logging graph, to disable use `wandb.watch(log_graph=False)`
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/trainer/connectors/accelerator_connector.py:467: LightningDeprecationWarning: Setting `Trainer(gpus=1)` is deprecated in v1.7 and will be removed in v2.0. Please use `Trainer(accelerator='gpu', devices=1)` instead.
+  rank_zero_deprecation(
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+IPU available: False, using: 0 IPUs
+HPU available: False, using: 0 HPUs
+You are using a CUDA device ('NVIDIA GeForce RTX 4090') that has Tensor Cores. To properly utilize them, you should set `torch.set_float32_matmul_precision('medium' | 'high')` which will trade-off precision for performance. For more details, read https://pytorch.org/docs/stable/generated/torch.set_float32_matmul_precision.html#torch.set_float32_matmul_precision
+/fsb/home/jiansun/js_zhanght/DiffCSP/./diffcsp/pl_data/dataset.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.cached_data = torch.load(save_path)
+/fsb/home/jiansun/js_zhanght/DiffCSP/./diffcsp/pl_data/dataset.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.cached_data = torch.load(save_path)
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/callbacks/model_checkpoint.py:612: UserWarning: Checkpoint directory /fsb/home/jiansun/js_zhanght/DiffCSP/result/singlerun/2026-01-15/c24-eflow-1-15 exists and is not empty.
+  rank_zero_warn(f"Checkpoint directory {dirpath} exists and is not empty.")
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/core/optimizer.py:384: RuntimeWarning: Found unsupported keys in the optimizer configuration: {'interval'}
+  rank_zero_warn(
+
+  | Name            | Type                     | Params
+-------------------------------------------------------------
+0 | decoder         | CSPNet                   | 12.3 M
+1 | beta_scheduler  | BetaScheduler            | 0     
+2 | sigma_scheduler | SigmaScheduler           | 0     
+3 | time_embedding  | SinusoidalTimeEmbeddings | 0     
+-------------------------------------------------------------
+12.3 M    Trainable params
+0         Non-trainable params
+12.3 M    Total params
+49.181    Total estimated model params size (MB)
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/lightning_fabric/utilities/data.py:323: UserWarning: 'data.DataLoader' is deprecated, use 'loader.DataLoader' instead
+  init(obj, *args, **kwargs)
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/utilities/data.py:84: UserWarning: Trying to infer the `batch_size` from an ambiguous collection. The batch size we found is 2. To avoid any miscalculations, use `self.log(..., batch_size=batch_size)`.
+  warning_cache.warn(
+Error executing job with overrides: ['data=carbon_24', 'data.train_max_epochs=3000', 'model=energy_matching', 'model.cost_coord=10', 'model.cost_lattice=1', 'expname=c24-eflow-1-15']
+Traceback (most recent call last):
+  File "/fsb/home/jiansun/js_zhanght/DiffCSP/diffcsp/run2.py", line 182, in <module>
+    main()
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/main.py", line 94, in decorated_main
+    _run_hydra(
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/_internal/utils.py", line 394, in _run_hydra
+    _run_app(
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/_internal/utils.py", line 457, in _run_app
+    run_and_report(
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/_internal/utils.py", line 223, in run_and_report
+    raise ex
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/_internal/utils.py", line 220, in run_and_report
+    return func()
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/_internal/utils.py", line 458, in <lambda>
+    lambda: hydra.run(
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/_internal/hydra.py", line 132, in run
+    _ = ret.return_value
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/core/utils.py", line 260, in return_value
+    raise self._return_value
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/core/utils.py", line 186, in run_job
+    ret.return_value = task_function(task_cfg)
+  File "/fsb/home/jiansun/js_zhanght/DiffCSP/diffcsp/run2.py", line 178, in main
+    run(cfg)
+  File "/fsb/home/jiansun/js_zhanght/DiffCSP/diffcsp/run2.py", line 166, in run
+    trainer.fit(model=model, datamodule=datamodule)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 608, in fit
+    call._call_and_handle_interrupt(
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/trainer/call.py", line 38, in _call_and_handle_interrupt
+    return trainer_fn(*args, **kwargs)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 650, in _fit_impl
+    self._run(model, ckpt_path=self.ckpt_path)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 1103, in _run
+    results = self._run_stage()
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 1182, in _run_stage
+    self._run_train()
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 1195, in _run_train
+    self._run_sanity_check()
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 1267, in _run_sanity_check
+    val_loop.run()
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/loops/loop.py", line 206, in run
+    output = self.on_run_end()
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/loops/dataloader/evaluation_loop.py", line 184, in on_run_end
+    self._on_evaluation_epoch_end()
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/loops/dataloader/evaluation_loop.py", line 294, in _on_evaluation_epoch_end
+    self.trainer._call_lightning_module_hook(hook_name)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 1347, in _call_lightning_module_hook
+    output = fn(*args, **kwargs)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/lightning_utilities/core/rank_zero.py", line 41, in wrapped_fn
+    return fn(*args, **kwargs)
+  File "/fsb/home/jiansun/js_zhanght/DiffCSP/./diffcsp/pl_modules/energy_model.py", line 946, in on_validation_epoch_end
+    if self.i>self.flow_warm_epochs:
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1931, in __getattr__
+    raise AttributeError(
+AttributeError: 'CSPEnergyMatching' object has no attribute 'flow_warm_epochs'
+wandb: Waiting for W&B process to finish... (failed 1).
+wandb: You can sync this run to the cloud by running:
+wandb: wandb sync ./wandb/offline-run-20260115_183507-5phfsl3y
+wandb: Find logs at: ./wandb/offline-run-20260115_183507-5phfsl3y/logs
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/lightning_fabric/__init__.py:29: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  __import__("pkg_resources").declare_namespace(__name__)
+/fsb/home/jiansun/js_zhanght/DiffCSP/diffcsp/run2.py:176: UserWarning: 
+The version_base parameter is not specified.
+Please specify a compatability version level, or None.
+Will assume defaults for version 1.1
+  @hydra.main(config_path=str(PROJECT_ROOT / "conf"), config_name="default")
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/_internal/defaults_list.py:251: UserWarning: In 'default': Defaults list is missing `_self_`. See https://hydra.cc/docs/1.2/upgrades/1.0_to_1.1/default_composition_order for more information
+  warnings.warn(msg, UserWarning)
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/_internal/hydra.py:119: UserWarning: Future Hydra versions will no longer change working directory at job runtime by default.
+See https://hydra.cc/docs/1.2/upgrades/1.1_to_1.2/changes_to_job_working_dir/ for more information.
+  ret = run_job(
+Global seed set to 42
+/fsb/home/jiansun/js_zhanght/DiffCSP/./diffcsp/pl_data/datamodule.py:152: UserWarning: 
+The version_base parameter is not specified.
+Please specify a compatability version level, or None.
+Will assume defaults for version 1.1
+  @hydra.main(config_path=str(PROJECT_ROOT / "conf"), config_name="default")
+/fsb/home/jiansun/js_zhanght/DiffCSP/./diffcsp/pl_data/dataset.py:155: UserWarning: 
+The version_base parameter is not specified.
+Please specify a compatability version level, or None.
+Will assume defaults for version 1.1
+  @hydra.main(config_path=str(PROJECT_ROOT / "conf"), config_name="default")
+/fsb/home/jiansun/js_zhanght/DiffCSP/./diffcsp/pl_data/dataset.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.cached_data = torch.load(save_path)
+/fsb/home/jiansun/js_zhanght/DiffCSP/./diffcsp/common/data_utils.py:1151: UserWarning: Creating a tensor from a list of numpy.ndarrays is extremely slow. Please consider converting the list to a single numpy.ndarray with numpy.array() before converting to a tensor. (Triggered internally at ../torch/csrc/utils/tensor_new.cpp:278.)
+  targets = torch.tensor([d[key] for d in data_list])
+/fsb/home/jiansun/js_zhanght/DiffCSP/./diffcsp/common/data_utils.py:1119: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  X = torch.tensor(X, dtype=torch.float)
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/wandb/apis/public.py:3109: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import parse_version
+wandb: WARNING `resume` will be ignored since W&B syncing is set to `offline`. Starting a new run with run id ceka01lf.
+wandb: Tracking run with wandb version 0.15.0
+wandb: W&B syncing is set to `offline` in this directory.  
+wandb: Run `wandb online` or set WANDB_MODE=online to enable cloud syncing.
+wandb: logging graph, to disable use `wandb.watch(log_graph=False)`
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/trainer/connectors/accelerator_connector.py:467: LightningDeprecationWarning: Setting `Trainer(gpus=1)` is deprecated in v1.7 and will be removed in v2.0. Please use `Trainer(accelerator='gpu', devices=1)` instead.
+  rank_zero_deprecation(
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+IPU available: False, using: 0 IPUs
+HPU available: False, using: 0 HPUs
+You are using a CUDA device ('NVIDIA GeForce RTX 4090') that has Tensor Cores. To properly utilize them, you should set `torch.set_float32_matmul_precision('medium' | 'high')` which will trade-off precision for performance. For more details, read https://pytorch.org/docs/stable/generated/torch.set_float32_matmul_precision.html#torch.set_float32_matmul_precision
+/fsb/home/jiansun/js_zhanght/DiffCSP/./diffcsp/pl_data/dataset.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.cached_data = torch.load(save_path)
+/fsb/home/jiansun/js_zhanght/DiffCSP/./diffcsp/pl_data/dataset.py:44: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.cached_data = torch.load(save_path)
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/callbacks/model_checkpoint.py:612: UserWarning: Checkpoint directory /fsb/home/jiansun/js_zhanght/DiffCSP/result/singlerun/2026-01-15/c24-eflow-1-15 exists and is not empty.
+  rank_zero_warn(f"Checkpoint directory {dirpath} exists and is not empty.")
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/core/optimizer.py:384: RuntimeWarning: Found unsupported keys in the optimizer configuration: {'interval'}
+  rank_zero_warn(
+
+  | Name            | Type                     | Params
+-------------------------------------------------------------
+0 | decoder         | CSPNet                   | 12.3 M
+1 | beta_scheduler  | BetaScheduler            | 0     
+2 | sigma_scheduler | SigmaScheduler           | 0     
+3 | time_embedding  | SinusoidalTimeEmbeddings | 0     
+-------------------------------------------------------------
+12.3 M    Trainable params
+0         Non-trainable params
+12.3 M    Total params
+49.181    Total estimated model params size (MB)
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/lightning_fabric/utilities/data.py:323: UserWarning: 'data.DataLoader' is deprecated, use 'loader.DataLoader' instead
+  init(obj, *args, **kwargs)
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/utilities/data.py:84: UserWarning: Trying to infer the `batch_size` from an ambiguous collection. The batch size we found is 2. To avoid any miscalculations, use `self.log(..., batch_size=batch_size)`.
+  warning_cache.warn(
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py:1600: PossibleUserWarning: The number of training batches (48) is smaller than the logging interval Trainer(log_every_n_steps=50). Set a lower value for log_every_n_steps if you want to see logs for the training epoch.
+  rank_zero_warn(
+Process Process-1941:
+
+Process Process-1938:
+Aborted!
+/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/trainer/call.py:48: UserWarning: Detected KeyboardInterrupt, attempting graceful shutdown...
+  rank_zero_warn("Detected KeyboardInterrupt, attempting graceful shutdown...")
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/multiprocessing/process.py", line 315, in _bootstrap
+    self.run()
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/multiprocessing/process.py", line 315, in _bootstrap
+    self.run()
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/torch/utils/data/_utils/worker.py", line 374, in _worker_loop
+    if done_event.is_set():
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/torch/utils/data/_utils/worker.py", line 374, in _worker_loop
+    if done_event.is_set():
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/multiprocessing/synchronize.py", line 327, in is_set
+    def is_set(self):
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/multiprocessing/synchronize.py", line 327, in is_set
+    def is_set(self):
+KeyboardInterrupt
+KeyboardInterrupt
+Error executing job with overrides: ['data=carbon_24', 'data.train_max_epochs=3000', 'model=energy_matching', 'model.cost_coord=10', 'model.cost_lattice=1', 'expname=c24-eflow-1-15']
+Traceback (most recent call last):
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/genericpath.py", line 19, in exists
+    os.stat(path)
+FileNotFoundError: [Errno 2] No such file or directory: '/fs00/software/cuda/12.3.1/bin/srun'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/fsb/home/jiansun/js_zhanght/DiffCSP/diffcsp/run2.py", line 182, in <module>
+    main()
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/main.py", line 94, in decorated_main
+    _run_hydra(
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/_internal/utils.py", line 394, in _run_hydra
+    _run_app(
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/_internal/utils.py", line 457, in _run_app
+    run_and_report(
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/_internal/utils.py", line 223, in run_and_report
+    raise ex
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/_internal/utils.py", line 220, in run_and_report
+    return func()
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/_internal/utils.py", line 458, in <lambda>
+    lambda: hydra.run(
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/_internal/hydra.py", line 132, in run
+    _ = ret.return_value
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/core/utils.py", line 260, in return_value
+    raise self._return_value
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/hydra/core/utils.py", line 186, in run_job
+    ret.return_value = task_function(task_cfg)
+  File "/fsb/home/jiansun/js_zhanght/DiffCSP/diffcsp/run2.py", line 178, in main
+    run(cfg)
+  File "/fsb/home/jiansun/js_zhanght/DiffCSP/diffcsp/run2.py", line 169, in run
+    trainer.test(datamodule=datamodule)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 785, in test
+    return call._call_and_handle_interrupt(
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/trainer/call.py", line 38, in _call_and_handle_interrupt
+    return trainer_fn(*args, **kwargs)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 827, in _test_impl
+    self._ckpt_path = self._checkpoint_connector._set_ckpt_path(
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/pytorch_lightning/trainer/connectors/checkpoint_connector.py", line 96, in _set_ckpt_path
+    if ckpt_path is None and SLURMEnvironment.detect() and self._hpc_resume_path is not None:
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/lightning_fabric/plugins/environments/slurm.py", line 98, in detect
+    SLURMEnvironment._validate_srun_used()
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/lightning_fabric/plugins/environments/slurm.py", line 163, in _validate_srun_used
+    srun_exists = shutil.which("srun") is not None
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/shutil.py", line 1464, in which
+    if _access_check(name, mode):
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/shutil.py", line 1384, in _access_check
+    return (os.path.exists(fn) and os.access(fn, mode)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/genericpath.py", line 19, in exists
+    os.stat(path)
+  File "/fsb/home/jiansun/js_zhanght/.conda/envs/diffcsp/lib/python3.10/site-packages/torch/utils/data/_utils/signal_handling.py", line 73, in handler
+    _error_if_any_worker_fails()
+RuntimeError: DataLoader worker (pid 34897) exited unexpectedly with exit code 1. Details are lost due to multiprocessing. Rerunning with num_workers=0 may give better error trace.
+Terminated

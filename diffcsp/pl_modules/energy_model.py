@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
-
+from pytorch_lightning.utilities.rank_zero import rank_zero_only
 from typing import Any, Dict
 
 import hydra
@@ -54,7 +54,7 @@ class BaseModule(pl.LightningModule):
         scheduler = hydra.utils.instantiate(
             self.hparams.optim.lr_scheduler, optimizer=opt
         )
-        return {"optimizer": opt, "lr_scheduler": scheduler, "monitor": "val_loss"}
+        return {"optimizer": opt, "lr_scheduler": scheduler, "monitor": "val_loss","interval":"epoch","frequency":1}
 
 
 ### Model definition
@@ -420,6 +420,13 @@ class CSPEnergy(BaseModule):
             on_epoch=True,
             prog_bar=True,
         )
+        self.log(
+            "val_loss",
+            log_dict["val_loss"],
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+                )
         return loss
 
     def test_step(self, batch: Any, batch_idx: int) -> torch.Tensor:
@@ -454,13 +461,10 @@ class CSPEnergyMatching(BaseModule):
         self.time_dim = self.hparams.time_dim
         self.time_steps = self.hparams.timesteps
         self.learning_stage = self.hparams.learning_stage
-        if self.learning_stage == "energy":
-            self.dt = self.hparams.dt
-            self.langevin_steps=self.hparams.langevin_steps
-            self.lambda_cd = self.hparams.lambda_cd
-        else:
-            self.dt = None
-            self.langevin_steps=None
+        self.dt = self.hparams.dt
+        self.langevin_steps=self.hparams.langevin_steps
+        self.lambda_cd = self.hparams.lambda_cd
+        self.flow_warm_epochs = self.hparams.flow_warm_epochs
         self.time_embedding = SinusoidalTimeEmbeddings(self.time_dim)
         self.keep_lattice = self.hparams.cost_lattice < 1e-5
         self.keep_coords = self.hparams.cost_coord < 1e-5
@@ -871,10 +875,6 @@ class CSPEnergyMatching(BaseModule):
 
 
     def training_step(self, batch: Any, batch_idx: int) -> torch.Tensor:
-        if batch_idx==0:
-            self.i+=1
-        if self.i>=3000:
-            self.learning_stage="energy"
         output_dict = self(batch)
 
         loss_lattice = output_dict['loss_lattice']
@@ -902,7 +902,9 @@ class CSPEnergyMatching(BaseModule):
         output_dict = self(batch)
 
         log_dict, loss = self.compute_stats(output_dict, prefix='val')
-
+        #for key in log_dict:
+        #    print(key,":",log_dict[key],end=" |  ")
+        #print("\n")
         self.log_dict(
             log_dict,
             on_step=False,
@@ -937,4 +939,20 @@ class CSPEnergyMatching(BaseModule):
         }
 
         return log_dict, loss
+
+    @rank_zero_only
+    def on_validation_epoch_end(self):
+        self.i+=1
+        if self.i>self.flow_warm_epochs:
+            self.learning_stage="energy"
+        m = self.trainer.callback_metrics
+
+        msg = (
+        f"[Epoch {self.current_epoch}] "
+        f"val_loss={m['val_loss']:.4e}, "
+        f"val_coord_loss={m['val_coord_loss']:.4e}, "
+        f"val_lattice_loss={m['val_lattice_loss']:.4e}, "
+        f"val_ene_loss={m['val_ene_loss']:.4e}"
+        )
+        print(msg)
 

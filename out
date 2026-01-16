@@ -1,0 +1,453 @@
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@m005>
+Subject: Job 57515995: <energy> in cluster <hpc> Exited
+
+Job <energy> was submitted from host <login9> by user <js_zhanght> in cluster <hpc> at Thu Jan 15 18:09:37 2026
+Job was executed on host(s) <8*m005>, in queue <734090ib>, as user <js_zhanght> in cluster <hpc> at Thu Jan 15 18:09:38 2026
+</fsb/home/jiansun/js_zhanght> was used as the home directory.
+</fsb/home/jiansun/js_zhanght/DiffCSP> was used as the working directory.
+Started at Thu Jan 15 18:09:38 2026
+Terminated at Thu Jan 15 18:16:05 2026
+Results reported at Thu Jan 15 18:16:05 2026
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/bash
+#BSUB -q 734090ib
+#BSUB -gpu "num=1:aff=yes"
+#BSUB -J energy
+#BSUB -o out
+#BSUB -e err
+module load anaconda/3-5.0.1
+module load cuda/12.3.1
+source activate diffcsp
+export OMP_NUM_THREADS=1
+export HYDRA_FULL_ERROR=1
+python3 diffcsp/run2.py data=carbon_24 data.train_max_epochs=2000 model=energy_matching model.cost_coord=10 model.cost_lattice=1 expname=c24-eflow-1-15
+
+
+------------------------------------------------------------
+
+TERM_OWNER: job killed by owner.
+Exited with exit code 143.
+
+Resource usage summary:
+
+    CPU time :                                   465.00 sec.
+    Max Memory :                                 2620 MB
+    Average Memory :                             1983.47 MB
+    Total Requested Memory :                     -
+    Delta Memory :                               -
+    Max Swap :                                   -
+    Max Processes :                              21
+    Max Threads :                                134
+    Run time :                                   391 sec.
+    Turnaround time :                            388 sec.
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file <err> for stderr output of this job.
+
+[2026-01-15 18:16:37,214][hydra.utils][INFO] - Instantiating <diffcsp.pl_data.datamodule.CrystDataModule>
+[2026-01-15 18:16:48,261][hydra.utils][INFO] - Instantiating <diffcsp.pl_modules.energy_model.CSPEnergyMatching>
+[2026-01-15 18:16:55,090][hydra.utils][INFO] - Passing scaler from datamodule to model <StandardScalerTorch(means: -154.2510223388672, stds: 0.13738815486431122)>
+[2026-01-15 18:16:55,115][hydra.utils][INFO] - Adding callback <LearningRateMonitor>
+[2026-01-15 18:16:55,115][hydra.utils][INFO] - Adding callback <EarlyStopping>
+[2026-01-15 18:16:55,116][hydra.utils][INFO] - Adding callback <ModelCheckpoint>
+[2026-01-15 18:16:55,145][hydra.utils][INFO] - Instantiating <WandbLogger>
+[2026-01-15 18:17:08,248][hydra.utils][INFO] - W&B is now watching <{cfg.logging.wandb_watch.log}>!
+[2026-01-15 18:17:08,283][hydra.utils][INFO] - found checkpoint: /fsb/home/jiansun/js_zhanght/DiffCSP/result/singlerun/2026-01-15/c24-eflow-1-15/epoch=0-step=48.ckpt
+[2026-01-15 18:17:08,283][hydra.utils][INFO] - Instantiating the Trainer
+[2026-01-15 18:17:08,475][hydra.utils][INFO] - Starting training!
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@m005>
+Subject: Job 57516075: <energy> in cluster <hpc> Exited
+
+Job <energy> was submitted from host <login9> by user <js_zhanght> in cluster <hpc> at Thu Jan 15 18:16:08 2026
+Job was executed on host(s) <8*m005>, in queue <734090ib>, as user <js_zhanght> in cluster <hpc> at Thu Jan 15 18:16:09 2026
+</fsb/home/jiansun/js_zhanght> was used as the home directory.
+</fsb/home/jiansun/js_zhanght/DiffCSP> was used as the working directory.
+Started at Thu Jan 15 18:16:09 2026
+Terminated at Thu Jan 15 18:24:29 2026
+Results reported at Thu Jan 15 18:24:29 2026
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/bash
+#BSUB -q 734090ib
+#BSUB -gpu "num=1:aff=yes"
+#BSUB -J energy
+#BSUB -o out
+#BSUB -e err
+module load anaconda/3-5.0.1
+module load cuda/12.3.1
+source activate diffcsp
+export OMP_NUM_THREADS=1
+export HYDRA_FULL_ERROR=1
+python3 diffcsp/run2.py data=carbon_24 data.train_max_epochs=2000 model=energy_matching model.cost_coord=10 model.cost_lattice=1 expname=c24-eflow-1-15
+
+
+------------------------------------------------------------
+
+Exited with exit code 1.
+
+Resource usage summary:
+
+    CPU time :                                   596.53 sec.
+    Max Memory :                                 2824 MB
+    Average Memory :                             2425.05 MB
+    Total Requested Memory :                     -
+    Delta Memory :                               -
+    Max Swap :                                   -
+    Max Processes :                              21
+    Max Threads :                                270
+    Run time :                                   500 sec.
+    Turnaround time :                            501 sec.
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file <err> for stderr output of this job.
+
+[2026-01-15 18:28:52,688][hydra.utils][INFO] - Instantiating <diffcsp.pl_data.datamodule.CrystDataModule>
+[2026-01-15 18:29:11,514][hydra.utils][INFO] - Instantiating <diffcsp.pl_modules.energy_model.CSPEnergyMatching>
+[2026-01-15 18:29:18,317][hydra.utils][INFO] - Passing scaler from datamodule to model <StandardScalerTorch(means: -154.2510223388672, stds: 0.13738815486431122)>
+[2026-01-15 18:29:18,355][hydra.utils][INFO] - Adding callback <LearningRateMonitor>
+[2026-01-15 18:29:18,355][hydra.utils][INFO] - Adding callback <EarlyStopping>
+[2026-01-15 18:29:18,356][hydra.utils][INFO] - Adding callback <ModelCheckpoint>
+[2026-01-15 18:29:18,442][hydra.utils][INFO] - Instantiating <WandbLogger>
+[2026-01-15 18:29:31,437][hydra.utils][INFO] - W&B is now watching <{cfg.logging.wandb_watch.log}>!
+[2026-01-15 18:29:31,465][hydra.utils][INFO] - found checkpoint: /fsb/home/jiansun/js_zhanght/DiffCSP/result/singlerun/2026-01-15/c24-eflow-1-15/epoch=0-step=48-v2.ckpt
+[2026-01-15 18:29:31,465][hydra.utils][INFO] - Instantiating the Trainer
+[2026-01-15 18:29:31,649][hydra.utils][INFO] - Starting training!
+[Epoch 0] val_loss=4.5182e+00, val_coord_loss=2.5983e-01, val_lattice_loss=1.9199e+00, val_ene_loss=0.0000e+00
+[Epoch 0] val_loss=2.6683e+00, val_coord_loss=8.3907e-02, val_lattice_loss=1.8293e+00, val_ene_loss=0.0000e+00
+[2026-01-15 18:30:19,506][hydra.utils][INFO] - Starting testing!
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@m005>
+Subject: Job 57516117: <energy> in cluster <hpc> Exited
+
+Job <energy> was submitted from host <login9> by user <js_zhanght> in cluster <hpc> at Thu Jan 15 18:28:02 2026
+Job was executed on host(s) <8*m005>, in queue <734090ib>, as user <js_zhanght> in cluster <hpc> at Thu Jan 15 18:28:02 2026
+</fsb/home/jiansun/js_zhanght> was used as the home directory.
+</fsb/home/jiansun/js_zhanght/DiffCSP> was used as the working directory.
+Started at Thu Jan 15 18:28:02 2026
+Terminated at Thu Jan 15 18:30:31 2026
+Results reported at Thu Jan 15 18:30:31 2026
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/bash
+#BSUB -q 734090ib
+#BSUB -gpu "num=1:aff=yes"
+#BSUB -J energy
+#BSUB -o out
+#BSUB -e err
+module load anaconda/3-5.0.1
+module load cuda/12.3.1
+source activate diffcsp
+export OMP_NUM_THREADS=1
+export HYDRA_FULL_ERROR=1
+python3 diffcsp/run2.py data=carbon_24 data.train_max_epochs=2000 model=energy_matching model.cost_coord=10 model.cost_lattice=1 expname=c24-eflow-1-15
+
+
+------------------------------------------------------------
+
+TERM_OWNER: job killed by owner.
+Exited with exit code 143.
+
+Resource usage summary:
+
+    CPU time :                                   84.00 sec.
+    Max Memory :                                 2755 MB
+    Average Memory :                             1058.29 MB
+    Total Requested Memory :                     -
+    Delta Memory :                               -
+    Max Swap :                                   -
+    Max Processes :                              21
+    Max Threads :                                89
+    Run time :                                   179 sec.
+    Turnaround time :                            149 sec.
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file <err> for stderr output of this job.
+
+[2026-01-15 18:34:47,280][hydra.utils][INFO] - Instantiating <diffcsp.pl_data.datamodule.CrystDataModule>
+[2026-01-15 18:34:57,962][hydra.utils][INFO] - Instantiating <diffcsp.pl_modules.energy_model.CSPEnergyMatching>
+[2026-01-15 18:35:04,541][hydra.utils][INFO] - Passing scaler from datamodule to model <StandardScalerTorch(means: -154.2510223388672, stds: 0.13738815486431122)>
+[2026-01-15 18:35:04,572][hydra.utils][INFO] - Adding callback <LearningRateMonitor>
+[2026-01-15 18:35:04,572][hydra.utils][INFO] - Adding callback <EarlyStopping>
+[2026-01-15 18:35:04,573][hydra.utils][INFO] - Adding callback <ModelCheckpoint>
+[2026-01-15 18:35:04,593][hydra.utils][INFO] - Instantiating <WandbLogger>
+[2026-01-15 18:35:16,238][hydra.utils][INFO] - W&B is now watching <{cfg.logging.wandb_watch.log}>!
+[2026-01-15 18:35:16,265][hydra.utils][INFO] - found checkpoint: /fsb/home/jiansun/js_zhanght/DiffCSP/result/singlerun/2026-01-15/c24-eflow-1-15/epoch=0-step=48-v3.ckpt
+[2026-01-15 18:35:16,266][hydra.utils][INFO] - Instantiating the Trainer
+[2026-01-15 18:35:16,428][hydra.utils][INFO] - Starting training!
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@m005>
+Subject: Job 57516209: <energy> in cluster <hpc> Exited
+
+Job <energy> was submitted from host <login9> by user <js_zhanght> in cluster <hpc> at Thu Jan 15 18:34:16 2026
+Job was executed on host(s) <8*m005>, in queue <734090ib>, as user <js_zhanght> in cluster <hpc> at Thu Jan 15 18:34:18 2026
+</fsb/home/jiansun/js_zhanght> was used as the home directory.
+</fsb/home/jiansun/js_zhanght/DiffCSP> was used as the working directory.
+Started at Thu Jan 15 18:34:18 2026
+Terminated at Thu Jan 15 18:35:28 2026
+Results reported at Thu Jan 15 18:35:28 2026
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/bash
+#BSUB -q 734090ib
+#BSUB -gpu "num=1:aff=yes"
+#BSUB -J energy
+#BSUB -o out
+#BSUB -e err
+module load anaconda/3-5.0.1
+module load cuda/12.3.1
+source activate diffcsp
+export OMP_NUM_THREADS=1
+export HYDRA_FULL_ERROR=1
+python3 diffcsp/run2.py data=carbon_24 data.train_max_epochs=3000 model=energy_matching model.cost_coord=10 model.cost_lattice=1 expname=c24-eflow-1-15
+
+
+------------------------------------------------------------
+
+Exited with exit code 1.
+
+Resource usage summary:
+
+    CPU time :                                   26.30 sec.
+    Max Memory :                                 1758 MB
+    Average Memory :                             1139.80 MB
+    Total Requested Memory :                     -
+    Delta Memory :                               -
+    Max Swap :                                   -
+    Max Processes :                              13
+    Max Threads :                                57
+    Run time :                                   70 sec.
+    Turnaround time :                            72 sec.
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file <err> for stderr output of this job.
+
+[2026-01-15 18:36:36,530][hydra.utils][INFO] - Instantiating <diffcsp.pl_data.datamodule.CrystDataModule>
+[2026-01-15 18:36:42,501][hydra.utils][INFO] - Instantiating <diffcsp.pl_modules.energy_model.CSPEnergyMatching>
+[2026-01-15 18:36:49,125][hydra.utils][INFO] - Passing scaler from datamodule to model <StandardScalerTorch(means: -154.2510223388672, stds: 0.13738815486431122)>
+[2026-01-15 18:36:49,159][hydra.utils][INFO] - Adding callback <LearningRateMonitor>
+[2026-01-15 18:36:49,159][hydra.utils][INFO] - Adding callback <EarlyStopping>
+[2026-01-15 18:36:49,160][hydra.utils][INFO] - Adding callback <ModelCheckpoint>
+[2026-01-15 18:36:49,170][hydra.utils][INFO] - Instantiating <WandbLogger>
+[2026-01-15 18:36:57,519][hydra.utils][INFO] - W&B is now watching <{cfg.logging.wandb_watch.log}>!
+[2026-01-15 18:36:57,541][hydra.utils][INFO] - found checkpoint: /fsb/home/jiansun/js_zhanght/DiffCSP/result/singlerun/2026-01-15/c24-eflow-1-15/epoch=0-step=48-v3.ckpt
+[2026-01-15 18:36:57,541][hydra.utils][INFO] - Instantiating the Trainer
+[2026-01-15 18:36:57,679][hydra.utils][INFO] - Starting training!
+[Epoch 0] val_loss=4.5182e+00, val_coord_loss=2.5983e-01, val_lattice_loss=1.9199e+00, val_ene_loss=0.0000e+00
+[Epoch 0] val_loss=2.6683e+00, val_coord_loss=8.3907e-02, val_lattice_loss=1.8293e+00, val_ene_loss=0.0000e+00
+[Epoch 1] val_loss=2.6747e+00, val_coord_loss=8.3066e-02, val_lattice_loss=1.8441e+00, val_ene_loss=0.0000e+00
+[Epoch 2] val_loss=2.7019e+00, val_coord_loss=8.3690e-02, val_lattice_loss=1.8650e+00, val_ene_loss=0.0000e+00
+[Epoch 3] val_loss=2.6908e+00, val_coord_loss=8.3787e-02, val_lattice_loss=1.8529e+00, val_ene_loss=0.0000e+00
+[Epoch 4] val_loss=2.6935e+00, val_coord_loss=8.3417e-02, val_lattice_loss=1.8593e+00, val_ene_loss=0.0000e+00
+[Epoch 5] val_loss=2.6811e+00, val_coord_loss=8.2977e-02, val_lattice_loss=1.8513e+00, val_ene_loss=0.0000e+00
+[Epoch 6] val_loss=2.7016e+00, val_coord_loss=8.3908e-02, val_lattice_loss=1.8626e+00, val_ene_loss=0.0000e+00
+[Epoch 7] val_loss=2.7124e+00, val_coord_loss=8.3203e-02, val_lattice_loss=1.8804e+00, val_ene_loss=0.0000e+00
+[Epoch 8] val_loss=2.6976e+00, val_coord_loss=8.3328e-02, val_lattice_loss=1.8643e+00, val_ene_loss=0.0000e+00
+[Epoch 9] val_loss=2.7002e+00, val_coord_loss=8.3539e-02, val_lattice_loss=1.8648e+00, val_ene_loss=0.0000e+00
+[Epoch 10] val_loss=2.6888e+00, val_coord_loss=8.3402e-02, val_lattice_loss=1.8547e+00, val_ene_loss=0.0000e+00
+[Epoch 11] val_loss=2.6838e+00, val_coord_loss=8.2842e-02, val_lattice_loss=1.8554e+00, val_ene_loss=0.0000e+00
+[Epoch 12] val_loss=2.6933e+00, val_coord_loss=8.2628e-02, val_lattice_loss=1.8671e+00, val_ene_loss=0.0000e+00
+[Epoch 13] val_loss=2.6784e+00, val_coord_loss=8.3148e-02, val_lattice_loss=1.8469e+00, val_ene_loss=0.0000e+00
+[Epoch 14] val_loss=2.6908e+00, val_coord_loss=8.2603e-02, val_lattice_loss=1.8648e+00, val_ene_loss=0.0000e+00
+[Epoch 15] val_loss=2.6976e+00, val_coord_loss=8.3066e-02, val_lattice_loss=1.8670e+00, val_ene_loss=0.0000e+00
+[Epoch 16] val_loss=2.6685e+00, val_coord_loss=8.3090e-02, val_lattice_loss=1.8376e+00, val_ene_loss=0.0000e+00
+[Epoch 17] val_loss=2.6936e+00, val_coord_loss=8.3258e-02, val_lattice_loss=1.8610e+00, val_ene_loss=0.0000e+00
+[Epoch 18] val_loss=2.6833e+00, val_coord_loss=8.3115e-02, val_lattice_loss=1.8521e+00, val_ene_loss=0.0000e+00
+[Epoch 19] val_loss=2.6900e+00, val_coord_loss=8.3314e-02, val_lattice_loss=1.8569e+00, val_ene_loss=0.0000e+00
+[Epoch 20] val_loss=2.6654e+00, val_coord_loss=8.3079e-02, val_lattice_loss=1.8346e+00, val_ene_loss=0.0000e+00
+[Epoch 21] val_loss=2.6555e+00, val_coord_loss=8.2904e-02, val_lattice_loss=1.8264e+00, val_ene_loss=0.0000e+00
+[Epoch 22] val_loss=2.6581e+00, val_coord_loss=8.3883e-02, val_lattice_loss=1.8192e+00, val_ene_loss=0.0000e+00
+[Epoch 23] val_loss=2.6869e+00, val_coord_loss=8.3313e-02, val_lattice_loss=1.8537e+00, val_ene_loss=0.0000e+00
+[Epoch 24] val_loss=2.6889e+00, val_coord_loss=8.3516e-02, val_lattice_loss=1.8537e+00, val_ene_loss=0.0000e+00
+[Epoch 25] val_loss=2.6772e+00, val_coord_loss=8.4148e-02, val_lattice_loss=1.8357e+00, val_ene_loss=0.0000e+00
+[Epoch 26] val_loss=2.6450e+00, val_coord_loss=8.4603e-02, val_lattice_loss=1.7990e+00, val_ene_loss=0.0000e+00
+[Epoch 27] val_loss=2.5063e+00, val_coord_loss=9.8382e-02, val_lattice_loss=1.5225e+00, val_ene_loss=0.0000e+00
+[Epoch 28] val_loss=2.4808e+00, val_coord_loss=9.5150e-02, val_lattice_loss=1.5293e+00, val_ene_loss=0.0000e+00
+[Epoch 29] val_loss=2.3478e+00, val_coord_loss=9.3209e-02, val_lattice_loss=1.4157e+00, val_ene_loss=0.0000e+00
+[Epoch 30] val_loss=2.2605e+00, val_coord_loss=9.5584e-02, val_lattice_loss=1.3046e+00, val_ene_loss=0.0000e+00
+[Epoch 31] val_loss=2.4514e+00, val_coord_loss=1.0202e-01, val_lattice_loss=1.7037e+00, val_ene_loss=-2.7254e-01
+[Epoch 32] val_loss=2.2220e+00, val_coord_loss=1.1755e-01, val_lattice_loss=1.7031e+00, val_ene_loss=-6.5664e-01
+[Epoch 33] val_loss=2.3674e+00, val_coord_loss=9.6894e-02, val_lattice_loss=1.8778e+00, val_ene_loss=-4.7931e-01
+[Epoch 34] val_loss=2.1930e+00, val_coord_loss=1.1339e-01, val_lattice_loss=1.7436e+00, val_ene_loss=-6.8447e-01
+[Epoch 35] val_loss=2.4163e+00, val_coord_loss=1.4243e-01, val_lattice_loss=1.7653e+00, val_ene_loss=-7.7325e-01
+[Epoch 36] val_loss=2.1077e+00, val_coord_loss=1.1622e-01, val_lattice_loss=1.7285e+00, val_ene_loss=-7.8303e-01
+[Epoch 37] val_loss=2.2201e+00, val_coord_loss=1.1574e-01, val_lattice_loss=1.7215e+00, val_ene_loss=-6.5876e-01
+[Epoch 38] val_loss=2.0322e+00, val_coord_loss=1.0183e-01, val_lattice_loss=1.6333e+00, val_ene_loss=-6.1950e-01
+[Epoch 39] val_loss=3.6775e+00, val_coord_loss=2.1126e-01, val_lattice_loss=1.6862e+00, val_ene_loss=-1.2137e-01
+[Epoch 40] val_loss=1.8524e+00, val_coord_loss=9.6042e-02, val_lattice_loss=1.6850e+00, val_ene_loss=-7.9303e-01
+[Epoch 41] val_loss=2.3111e+00, val_coord_loss=1.1921e-01, val_lattice_loss=1.6525e+00, val_ene_loss=-5.3346e-01
+[Epoch 42] val_loss=1.9378e+00, val_coord_loss=1.0074e-01, val_lattice_loss=1.5993e+00, val_ene_loss=-6.6890e-01
+[Epoch 43] val_loss=2.3328e+00, val_coord_loss=1.3400e-01, val_lattice_loss=1.6565e+00, val_ene_loss=-6.6374e-01
+[Epoch 44] val_loss=2.0861e+00, val_coord_loss=1.0622e-01, val_lattice_loss=1.5821e+00, val_ene_loss=-5.5816e-01
+[Epoch 45] val_loss=2.1282e+00, val_coord_loss=1.1026e-01, val_lattice_loss=1.7317e+00, val_ene_loss=-7.0618e-01
+[Epoch 46] val_loss=2.1587e+00, val_coord_loss=1.0575e-01, val_lattice_loss=1.7126e+00, val_ene_loss=-6.1139e-01
+[Epoch 47] val_loss=2.1326e+00, val_coord_loss=1.1179e-01, val_lattice_loss=1.6959e+00, val_ene_loss=-6.8117e-01
+[Epoch 48] val_loss=2.1019e+00, val_coord_loss=1.0965e-01, val_lattice_loss=1.6608e+00, val_ene_loss=-6.5534e-01
+[Epoch 49] val_loss=2.2965e+00, val_coord_loss=1.2118e-01, val_lattice_loss=1.6383e+00, val_ene_loss=-5.5368e-01
+[Epoch 50] val_loss=2.1614e+00, val_coord_loss=1.1146e-01, val_lattice_loss=1.6750e+00, val_ene_loss=-6.2822e-01
+[Epoch 51] val_loss=2.1892e+00, val_coord_loss=1.2170e-01, val_lattice_loss=1.6548e+00, val_ene_loss=-6.8256e-01
+[Epoch 52] val_loss=2.0453e+00, val_coord_loss=1.1185e-01, val_lattice_loss=1.6340e+00, val_ene_loss=-7.0726e-01
+[Epoch 53] val_loss=2.1463e+00, val_coord_loss=1.1551e-01, val_lattice_loss=1.6170e+00, val_ene_loss=-6.2583e-01
+[Epoch 54] val_loss=2.1985e+00, val_coord_loss=1.1719e-01, val_lattice_loss=1.6870e+00, val_ene_loss=-6.6040e-01
+[Epoch 55] val_loss=2.1322e+00, val_coord_loss=1.1112e-01, val_lattice_loss=1.6476e+00, val_ene_loss=-6.2654e-01
+[Epoch 56] val_loss=2.1199e+00, val_coord_loss=1.1769e-01, val_lattice_loss=1.6193e+00, val_ene_loss=-6.7637e-01
+[Epoch 57] val_loss=1.9614e+00, val_coord_loss=1.1445e-01, val_lattice_loss=1.5946e+00, val_ene_loss=-7.7766e-01
+[Epoch 58] val_loss=2.1192e+00, val_coord_loss=1.2400e-01, val_lattice_loss=1.6140e+00, val_ene_loss=-7.3477e-01
+[Epoch 59] val_loss=2.0265e+00, val_coord_loss=1.0862e-01, val_lattice_loss=1.6529e+00, val_ene_loss=-7.1265e-01
+[Epoch 60] val_loss=1.8877e+00, val_coord_loss=1.1422e-01, val_lattice_loss=1.6442e+00, val_ene_loss=-8.9878e-01
+[Epoch 61] val_loss=1.8732e+00, val_coord_loss=1.1111e-01, val_lattice_loss=1.6269e+00, val_ene_loss=-8.6478e-01
+[Epoch 62] val_loss=1.8046e+00, val_coord_loss=1.0031e-01, val_lattice_loss=1.5995e+00, val_ene_loss=-7.9807e-01
+[Epoch 63] val_loss=1.6667e+00, val_coord_loss=1.0224e-01, val_lattice_loss=1.6773e+00, val_ene_loss=-1.0330e+00
+[Epoch 64] val_loss=2.1055e+00, val_coord_loss=1.2894e-01, val_lattice_loss=1.6195e+00, val_ene_loss=-8.0329e-01
+[Epoch 65] val_loss=2.0511e+00, val_coord_loss=1.2571e-01, val_lattice_loss=1.6117e+00, val_ene_loss=-8.1770e-01
+[Epoch 66] val_loss=1.9145e+00, val_coord_loss=1.1838e-01, val_lattice_loss=1.6222e+00, val_ene_loss=-8.9153e-01
+[Epoch 67] val_loss=2.0143e+00, val_coord_loss=1.2887e-01, val_lattice_loss=1.5571e+00, val_ene_loss=-8.3149e-01
+[Epoch 68] val_loss=1.7982e+00, val_coord_loss=1.1102e-01, val_lattice_loss=1.5933e+00, val_ene_loss=-9.0529e-01
+[Epoch 69] val_loss=1.9996e+00, val_coord_loss=1.2843e-01, val_lattice_loss=1.5346e+00, val_ene_loss=-8.1921e-01
+[Epoch 70] val_loss=1.9450e+00, val_coord_loss=1.1381e-01, val_lattice_loss=1.5485e+00, val_ene_loss=-7.4166e-01
+[Epoch 71] val_loss=1.9625e+00, val_coord_loss=1.1538e-01, val_lattice_loss=1.5681e+00, val_ene_loss=-7.5930e-01
+[Epoch 72] val_loss=2.1142e+00, val_coord_loss=1.2933e-01, val_lattice_loss=1.5413e+00, val_ene_loss=-7.2035e-01
+[Epoch 73] val_loss=2.1054e+00, val_coord_loss=1.3666e-01, val_lattice_loss=1.5461e+00, val_ene_loss=-8.0723e-01
+[Epoch 74] val_loss=2.0363e+00, val_coord_loss=1.3173e-01, val_lattice_loss=1.5070e+00, val_ene_loss=-7.8798e-01
+[Epoch 75] val_loss=2.0474e+00, val_coord_loss=9.8818e-02, val_lattice_loss=1.5509e+00, val_ene_loss=-4.9170e-01
+[Epoch 76] val_loss=2.0078e+00, val_coord_loss=1.1144e-01, val_lattice_loss=1.5758e+00, val_ene_loss=-6.8238e-01
+[Epoch 77] val_loss=1.9563e+00, val_coord_loss=1.0200e-01, val_lattice_loss=1.5385e+00, val_ene_loss=-6.0226e-01
+[Epoch 78] val_loss=1.7837e+00, val_coord_loss=1.0181e-01, val_lattice_loss=1.5081e+00, val_ene_loss=-7.4252e-01
+[Epoch 79] val_loss=1.8494e+00, val_coord_loss=1.2542e-01, val_lattice_loss=1.4952e+00, val_ene_loss=-9.0003e-01
+[Epoch 80] val_loss=1.7359e+00, val_coord_loss=9.4497e-02, val_lattice_loss=1.5439e+00, val_ene_loss=-7.5300e-01
+[Epoch 81] val_loss=2.0326e+00, val_coord_loss=1.3004e-01, val_lattice_loss=1.4790e+00, val_ene_loss=-7.4683e-01
+[Epoch 82] val_loss=1.8593e+00, val_coord_loss=9.8237e-02, val_lattice_loss=1.4523e+00, val_ene_loss=-5.7541e-01
+[Epoch 83] val_loss=2.3407e+00, val_coord_loss=1.4370e-01, val_lattice_loss=1.5000e+00, val_ene_loss=-5.9633e-01
+[Epoch 84] val_loss=2.0385e+00, val_coord_loss=1.3249e-01, val_lattice_loss=1.5159e+00, val_ene_loss=-8.0232e-01
+[Epoch 85] val_loss=2.8535e+00, val_coord_loss=1.9214e-01, val_lattice_loss=1.5121e+00, val_ene_loss=-5.7999e-01
+[Epoch 86] val_loss=1.9160e+00, val_coord_loss=1.0598e-01, val_lattice_loss=1.5196e+00, val_ene_loss=-6.6332e-01
+[Epoch 87] val_loss=2.0195e+00, val_coord_loss=1.2213e-01, val_lattice_loss=1.5700e+00, val_ene_loss=-7.7187e-01
+[Epoch 88] val_loss=2.0344e+00, val_coord_loss=1.0961e-01, val_lattice_loss=1.4800e+00, val_ene_loss=-5.4165e-01
+[Epoch 89] val_loss=1.7253e+00, val_coord_loss=1.0071e-01, val_lattice_loss=1.5232e+00, val_ene_loss=-8.0502e-01
+[Epoch 90] val_loss=1.8365e+00, val_coord_loss=1.0388e-01, val_lattice_loss=1.5298e+00, val_ene_loss=-7.3214e-01
+[Epoch 91] val_loss=2.0345e+00, val_coord_loss=1.2519e-01, val_lattice_loss=1.4628e+00, val_ene_loss=-6.8027e-01
+[Epoch 92] val_loss=2.0106e+00, val_coord_loss=1.3081e-01, val_lattice_loss=1.4702e+00, val_ene_loss=-7.6765e-01
+[Epoch 93] val_loss=1.6968e+00, val_coord_loss=1.1028e-01, val_lattice_loss=1.5322e+00, val_ene_loss=-9.3816e-01
+[Epoch 94] val_loss=2.2683e+00, val_coord_loss=1.0393e-01, val_lattice_loss=1.5191e+00, val_ene_loss=-2.9015e-01
+[Epoch 95] val_loss=2.2772e+00, val_coord_loss=1.0001e-01, val_lattice_loss=1.4999e+00, val_ene_loss=-2.2282e-01
+[Epoch 96] val_loss=1.9642e+00, val_coord_loss=1.0181e-01, val_lattice_loss=1.4649e+00, val_ene_loss=-5.1881e-01
+[Epoch 97] val_loss=2.0275e+00, val_coord_loss=1.1704e-01, val_lattice_loss=1.4617e+00, val_ene_loss=-6.0458e-01
+[Epoch 98] val_loss=1.7247e+00, val_coord_loss=1.0506e-01, val_lattice_loss=1.3695e+00, val_ene_loss=-6.9539e-01
+[Epoch 99] val_loss=1.7625e+00, val_coord_loss=1.0931e-01, val_lattice_loss=1.3895e+00, val_ene_loss=-7.2019e-01
+[Epoch 100] val_loss=1.8088e+00, val_coord_loss=1.1702e-01, val_lattice_loss=1.4864e+00, val_ene_loss=-8.4779e-01
+[Epoch 101] val_loss=1.8018e+00, val_coord_loss=1.2088e-01, val_lattice_loss=1.3758e+00, val_ene_loss=-7.8272e-01
+[Epoch 102] val_loss=1.7310e+00, val_coord_loss=1.1198e-01, val_lattice_loss=1.3533e+00, val_ene_loss=-7.4204e-01
+[Epoch 103] val_loss=1.6198e+00, val_coord_loss=1.0474e-01, val_lattice_loss=1.4541e+00, val_ene_loss=-8.8176e-01
+[Epoch 104] val_loss=2.0223e+00, val_coord_loss=1.0907e-01, val_lattice_loss=1.3789e+00, val_ene_loss=-4.4730e-01
+[Epoch 105] val_loss=1.8374e+00, val_coord_loss=1.1884e-01, val_lattice_loss=1.3876e+00, val_ene_loss=-7.3867e-01
+[Epoch 106] val_loss=1.9593e+00, val_coord_loss=1.1273e-01, val_lattice_loss=1.3713e+00, val_ene_loss=-5.3938e-01
+[Epoch 107] val_loss=1.8388e+00, val_coord_loss=1.1707e-01, val_lattice_loss=1.3996e+00, val_ene_loss=-7.3153e-01
+[Epoch 108] val_loss=1.6549e+00, val_coord_loss=1.0712e-01, val_lattice_loss=1.4135e+00, val_ene_loss=-8.2981e-01
+[Epoch 109] val_loss=1.5800e+00, val_coord_loss=1.1399e-01, val_lattice_loss=1.3915e+00, val_ene_loss=-9.5153e-01
+[Epoch 110] val_loss=1.9441e+00, val_coord_loss=1.2164e-01, val_lattice_loss=1.4149e+00, val_ene_loss=-6.8716e-01
+[Epoch 111] val_loss=1.5861e+00, val_coord_loss=1.2323e-01, val_lattice_loss=1.4107e+00, val_ene_loss=-1.0569e+00
+[Epoch 112] val_loss=1.9822e+00, val_coord_loss=1.4455e-01, val_lattice_loss=1.4173e+00, val_ene_loss=-8.8060e-01
+[Epoch 113] val_loss=1.8941e+00, val_coord_loss=1.1917e-01, val_lattice_loss=1.3648e+00, val_ene_loss=-6.6246e-01
+[Epoch 114] val_loss=2.2518e+00, val_coord_loss=1.5022e-01, val_lattice_loss=1.4367e+00, val_ene_loss=-6.8709e-01
+[Epoch 115] val_loss=1.7336e+00, val_coord_loss=1.2050e-01, val_lattice_loss=1.3955e+00, val_ene_loss=-8.6698e-01
+[Epoch 116] val_loss=1.8084e+00, val_coord_loss=1.1629e-01, val_lattice_loss=1.4099e+00, val_ene_loss=-7.6442e-01
+[Epoch 117] val_loss=1.8882e+00, val_coord_loss=1.2434e-01, val_lattice_loss=1.3377e+00, val_ene_loss=-6.9287e-01
+[Epoch 118] val_loss=1.7492e+00, val_coord_loss=1.2159e-01, val_lattice_loss=1.4189e+00, val_ene_loss=-8.8557e-01
+[Epoch 119] val_loss=1.7218e+00, val_coord_loss=1.2052e-01, val_lattice_loss=1.3827e+00, val_ene_loss=-8.6612e-01
+[Epoch 120] val_loss=2.0016e+00, val_coord_loss=1.4742e-01, val_lattice_loss=1.4083e+00, val_ene_loss=-8.8086e-01
+[2026-01-16 11:09:02,930][hydra.utils][INFO] - Starting testing!
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@m005>
+Subject: Job 57516224: <energy> in cluster <hpc> Exited
+
+Job <energy> was submitted from host <login9> by user <js_zhanght> in cluster <hpc> at Thu Jan 15 18:36:19 2026
+Job was executed on host(s) <8*m005>, in queue <734090ib>, as user <js_zhanght> in cluster <hpc> at Thu Jan 15 18:36:20 2026
+</fsb/home/jiansun/js_zhanght> was used as the home directory.
+</fsb/home/jiansun/js_zhanght/DiffCSP> was used as the working directory.
+Started at Thu Jan 15 18:36:20 2026
+Terminated at Fri Jan 16 11:09:14 2026
+Results reported at Fri Jan 16 11:09:14 2026
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/bash
+#BSUB -q 734090ib
+#BSUB -gpu "num=1:aff=yes"
+#BSUB -J energy
+#BSUB -o out
+#BSUB -e err
+module load anaconda/3-5.0.1
+module load cuda/12.3.1
+source activate diffcsp
+export OMP_NUM_THREADS=1
+export HYDRA_FULL_ERROR=1
+python3 diffcsp/run2.py data=carbon_24 data.train_max_epochs=3000 model=energy_matching model.cost_coord=10 model.cost_lattice=1 expname=c24-eflow-1-15
+
+
+------------------------------------------------------------
+
+TERM_OWNER: job killed by owner.
+Exited with exit code 143.
+
+Resource usage summary:
+
+    CPU time :                                   60702.00 sec.
+    Max Memory :                                 4019 MB
+    Average Memory :                             2746.50 MB
+    Total Requested Memory :                     -
+    Delta Memory :                               -
+    Max Swap :                                   -
+    Max Processes :                              21
+    Max Threads :                                248
+    Run time :                                   59574 sec.
+    Turnaround time :                            59575 sec.
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file <err> for stderr output of this job.
+
