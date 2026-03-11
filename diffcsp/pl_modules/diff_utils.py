@@ -155,21 +155,31 @@ def lattice_from_parameters(a, b, c, alpha, beta, gamma, degrees=True):
     lattice = torch.stack([a1, a2, a3], dim=-2)
     return lattice
 
-def get_static_noise(scaled_positions,cells):
-    scaled_positions_noise = torch.rand_like(scaled_positions)
-    a_low,a_high = 2.4,12.8
-    alpha_low,alpha_high = 60,120
-    low = torch.tensor([a_low,a_low,a_low,alpha_low,alpha_low,alpha_low],device=cells.device,dtype=cells.dtype)
-    high = torch.tensor([a_high,a_high,a_high,alpha_high,alpha_high,alpha_high],device=cells.device,dtype=cells.dtype)
-    cells_noise_6d = low + (high - low) * torch.rand(size=(cells.shape[0],low.shape[0]),device=cells.device,dtype=cells.dtype)
-    cells_noise = lattice_from_parameters(cells_noise_6d[:,0],
-                                                cells_noise_6d[:,1],
-                                                cells_noise_6d[:,2],
-                                                cells_noise_6d[:,3],
-                                                cells_noise_6d[:,4],
-                                                cells_noise_6d[:,5])
-    return scaled_positions_noise,cells_noise       
-
+def get_static_noise(self,scaled_positions,cells,mode="uni"):
+        scaled_positions_noise = torch.rand_like(scaled_positions)
+        if mode == "uni":
+            a_low,a_high = 2.4,12.8
+            alpha_low,alpha_high = 60,120
+            low = torch.tensor([a_low,a_low,a_low,alpha_low,alpha_low,alpha_low],device=cells.device,dtype=cells.dtype)
+            high = torch.tensor([a_high,a_high,a_high,alpha_high,alpha_high,alpha_high],device=cells.device,dtype=cells.dtype)
+            cells_noise_6d = low + (high - low) * torch.rand(size=(cells.shape[0],low.shape[0]),device=cells.device,dtype=cells.dtype)
+            cells_noise = self.lattice_from_parameters(cells_noise_6d[:,0],
+                                                    cells_noise_6d[:,1],
+                                                    cells_noise_6d[:,2],
+                                                    cells_noise_6d[:,3],
+                                                    cells_noise_6d[:,4],
+                                                    cells_noise_6d[:,5])
+        elif mode == "log":
+            loc,scale = 1.3595351865425995,0.1277552273430223
+            cell_l = torch.exp(scale*torch.randn(size=(cells.shape[0],3),device=cells.device,dtype=cells.dtype)+loc)
+            cell_a = 60+60*torch.rand(size=(cells.shape[0],3),device=cells.device,dtype=cells.dtype)
+            cells_noise = self.lattice_from_parameters(cell_l[:,0],
+                                                    cell_l[:,1],
+                                                    cell_l[:,2],
+                                                    cell_a[:,0],
+                                                    cell_a[:,1],
+                                                    cell_a[:,2])
+        return scaled_positions_noise,cells_noise
 
 def rot_tril(H):
     """
