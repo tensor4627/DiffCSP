@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
-
+from pytorch_lightning.utilities.rank_zero import rank_zero_only
 from typing import Any, Dict
 
 import hydra
@@ -54,7 +54,7 @@ class BaseModule(pl.LightningModule):
         scheduler = hydra.utils.instantiate(
             self.hparams.optim.lr_scheduler, optimizer=opt
         )
-        return {"optimizer": opt, "lr_scheduler": scheduler, "monitor": "val_loss"}
+        return {"optimizer": opt, "lr_scheduler": scheduler, "monitor": "val_loss","interval":"epoch","frequency":1}
 
 
 ### Model definition
@@ -420,6 +420,13 @@ class CSPEnergy(BaseModule):
             on_epoch=True,
             prog_bar=True,
         )
+        self.log(
+            "val_loss",
+            log_dict["val_loss"],
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+                )
         return loss
 
     def test_step(self, batch: Any, batch_idx: int) -> torch.Tensor:

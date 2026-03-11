@@ -1,6 +1,7 @@
 # log frequency
-val_check_interval: 5
-progress_bar_refresh_rate: 1
+val_check_interval: 1
+progress_bar_refresh_rate: 24
+enable_progress_bar: false
 
 wandb:
   name: ${expname}
