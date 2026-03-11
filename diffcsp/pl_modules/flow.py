@@ -1143,7 +1143,8 @@ class CSPEqM(BaseModule):
         return {
             'loss' : loss,
             'loss_lattice' : loss_lattice,
-            'loss_coord' : loss_coord
+            'loss_coord' : loss_coord,
+            'ene_loss':torch.zeros_like(loss)
         }
 
 
