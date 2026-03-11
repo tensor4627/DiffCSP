@@ -1,4 +1,4 @@
-_target_: diffcsp.pl_modules.diffusion.CSPEqM
+_target_: diffcsp.pl_modules.flow.CSPEqM
 time_dim: 256
 latent_dim: 0
 cost_coord: 10.
