@@ -465,9 +465,6 @@ class CSPEnergyMatching(BaseModule):
         self.langevin_steps=self.hparams.langevin_steps
         self.lambda_cd = self.hparams.lambda_cd
         self.flow_warm_epochs = self.hparams.flow_warm_epochs
-        self.langevin_coord_noise= self.hparams.langevin_coord_noise
-        self.langevin_lattice_noise= self.hparams.langevin_lattice_noise
-        self.tau = self.hparams.tau
         self.time_embedding = SinusoidalTimeEmbeddings(self.time_dim)
         self.keep_lattice = self.hparams.cost_lattice < 1e-5
         self.keep_coords = self.hparams.cost_coord < 1e-5
