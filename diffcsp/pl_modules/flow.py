@@ -1089,7 +1089,7 @@ class CSPMeanFlow(BaseModule):
 class CSPEqM(BaseModule):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        
+        self.i = 0
         self.decoder = hydra.utils.instantiate(self.hparams.decoder, latent_dim = self.hparams.latent_dim + self.hparams.time_dim, _recursive_=False)
         self.beta_scheduler = hydra.utils.instantiate(self.hparams.beta_scheduler)
         self.sigma_scheduler = hydra.utils.instantiate(self.hparams.sigma_scheduler)
@@ -1317,8 +1317,6 @@ class CSPEqM(BaseModule):
     @rank_zero_only
     def on_validation_epoch_end(self):
         self.i+=1
-        if self.i>self.flow_warm_epochs:
-            self.learning_stage="energy"
         m = self.trainer.callback_metrics
 
         msg = (
