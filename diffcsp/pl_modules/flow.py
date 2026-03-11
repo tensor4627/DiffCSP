@@ -1325,6 +1325,6 @@ class CSPEqM(BaseModule):
         f"val_loss={m['val_loss']:.4e}, "
         f"val_coord_loss={m['val_coord_loss']:.4e}, "
         f"val_lattice_loss={m['val_lattice_loss']:.4e}, "
-        f"val_ene_loss={m['val_ene_loss']:.4e}"
+        # f"val_ene_loss={m['val_ene_loss']:.4e}"
         )
         print(msg)
