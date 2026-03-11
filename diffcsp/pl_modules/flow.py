@@ -8,7 +8,7 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 
 from typing import Any, Dict
-
+from pytorch_lightning.utilities.rank_zero import rank_zero_only
 import hydra
 import omegaconf
 import pytorch_lightning as pl
@@ -1313,3 +1313,19 @@ class CSPEqM(BaseModule):
         }
 
         return log_dict, loss
+
+    @rank_zero_only
+    def on_validation_epoch_end(self):
+        self.i+=1
+        if self.i>self.flow_warm_epochs:
+            self.learning_stage="energy"
+        m = self.trainer.callback_metrics
+
+        msg = (
+        f"[Epoch {self.current_epoch}] "
+        f"val_loss={m['val_loss']:.4e}, "
+        f"val_coord_loss={m['val_coord_loss']:.4e}, "
+        f"val_lattice_loss={m['val_lattice_loss']:.4e}, "
+        f"val_ene_loss={m['val_ene_loss']:.4e}"
+        )
+        print(msg)
