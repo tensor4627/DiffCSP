@@ -3,6 +3,7 @@ time_dim: 256
 latent_dim: 0
 cost_coord: 10.
 cost_lattice: 1.
+alpha: 1.
 max_neighbors: 20  # maximum number of neighbors for OTF graph bulding in decoder
 radius: 7.  # maximum search radius for OTF graph building in decoder
 timesteps: 1000
