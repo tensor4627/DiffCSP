@@ -1095,6 +1095,7 @@ class CSPEqM(BaseModule):
         self.sigma_scheduler = hydra.utils.instantiate(self.hparams.sigma_scheduler)
         self.time_dim = self.hparams.time_dim
         self.time_steps = self.hparams.timesteps
+        self.alpha = self.hparams.alpha
         self.time_embedding = SinusoidalTimeEmbeddings(self.time_dim)
         self.keep_lattice = self.hparams.cost_lattice < 1e-5
         self.keep_coords = self.hparams.cost_coord < 1e-5
@@ -1104,9 +1105,9 @@ class CSPEqM(BaseModule):
         dis = end_fpos-start_fpos
         return dis-torch.round(dis)
 
-    def mild_target_trunc(self,time,alpha=0.4):
+    def mild_target_trunc(self,time):
         gamma = time/self.time_steps
-        return torch.clamp((1-gamma)/(1-alpha), min=0, max=1)
+        return torch.clamp((1-gamma)/(1-self.alpha+1e-7), min=0, max=1)
 
     def forward(self, batch):
         batch_size = batch.num_graphs
