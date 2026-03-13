@@ -509,6 +509,9 @@ class CSPEnergyMatching(BaseModule):
                                                     cell_a[:,0],
                                                     cell_a[:,1],
                                                     cell_a[:,2])
+        elif mode == "rand":
+             cells_noise = torch.rand_like(cells)
+
         return scaled_positions_noise,cells_noise
 
 

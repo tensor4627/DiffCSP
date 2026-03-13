@@ -1115,11 +1115,11 @@ class CSPEqM(BaseModule):
         time_emb = self.time_embedding(times)
 
         lattices = lattice_params_to_matrix_torch(batch.lengths, batch.angles)
-        lattices,_ = rot_tril(lattices)
+        # lattices,_ = rot_tril(lattices)
         frac_coords = batch.frac_coords
 
-        # rand_x,rand_l = torch.rand_like(frac_coords),torch.rand_like(lattices)
-        rand_x,rand_l = get_static_noise(scaled_positions=frac_coords,cells=lattices)
+        rand_x,rand_l = torch.rand_like(frac_coords),torch.rand_like(lattices)
+        # rand_x,rand_l = get_static_noise(scaled_positions=frac_coords,cells=lattices)
         
         input_lattice = rand_l+(lattices-rand_l)*times.view(-1,1,1)/self.time_steps
         input_frac_coords = rand_x + self.wrapped_distance_vector(rand_x,frac_coords)*(times.repeat_interleave(batch.num_atoms)[:, None])/self.time_steps
