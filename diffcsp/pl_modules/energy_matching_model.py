@@ -585,7 +585,7 @@ class CSPEnergyMatching(BaseModule):
 
         #rand_x,rand_l = torch.rand_like(frac_coords),torch.rand_like(lattices)
         rand_x,rand_l = self.get_static_noise(frac_coords,lattices,mode="log")
-        lattices,_ = self.rot_tril(lattices)
+        # lattices,_ = self.rot_tril(lattices)
         input_lattice = rand_l+(lattices-rand_l)*times.view(-1,1,1)/self.time_steps
         input_frac_coords = rand_x + self.wrapped_distance_vector(rand_x,frac_coords)*(times.repeat_interleave(batch.num_atoms)[:, None])/self.time_steps
 
@@ -601,7 +601,7 @@ class CSPEnergyMatching(BaseModule):
                 pred_e = (self.decoder(time_emb, batch.atom_types, input_frac_coords, input_lattice, batch.num_atoms, batch.batch))
                 # grad_f, grad_l = grad(pred_e, [input_frac_coords,input_lattice], grad_outputs = grad_outputs,create_graph=True,allow_unused=True)
                 grad_f, grad_l = grad([pred_e.sum()], [input_frac_coords,input_lattice],create_graph=True,allow_unused=True)
-        loss_lattice = F.mse_loss(torch.tril(-grad_l), torch.tril(lattices-rand_l))
+        loss_lattice = F.mse_loss(-grad_l, lattices-rand_l)
         # grad_x = (grad_f.view(-1,1,3)@input_lattice.detach().transpose(-1,-2).repeat_interleave(batch.num_atoms,dim=0)).squeeze(1)
         loss_coord = F.mse_loss((-grad_f), self.wrapped_distance_vector(rand_x,frac_coords))
 
