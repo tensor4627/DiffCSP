@@ -354,7 +354,7 @@ class CSPFlow(BaseModule):
         time_emb = self.time_embedding(times)
 
         lattices = lattice_params_to_matrix_torch(batch.lengths, batch.angles)
-        lattices,_= rot_tril(lattices)
+        # lattices,_= rot_tril(lattices)
         frac_coords = batch.frac_coords
 
         # rand_x,rand_l = torch.rand_like(frac_coords),torch.rand_like(lattices)
