@@ -584,7 +584,7 @@ class CSPEnergyMatching(BaseModule):
         frac_coords = batch.frac_coords
 
         #rand_x,rand_l = torch.rand_like(frac_coords),torch.rand_like(lattices)
-        rand_x,rand_l = self.get_static_noise(frac_coords,lattices,mode="log")
+        rand_x,rand_l = self.get_static_noise(frac_coords,lattices,mode="uni")
         # lattices,_ = self.rot_tril(lattices)
         input_lattice = rand_l+(lattices-rand_l)*times.view(-1,1,1)/self.time_steps
         input_frac_coords = rand_x + self.wrapped_distance_vector(rand_x,frac_coords)*(times.repeat_interleave(batch.num_atoms)[:, None])/self.time_steps
