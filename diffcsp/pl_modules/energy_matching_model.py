@@ -485,6 +485,53 @@ class CSPEnergyMatching(BaseModule):
     def wrapped_distance_vector(start_fpos,end_fpos):
         dis = end_fpos-start_fpos
         return dis-torch.round(dis)
+
+    @staticmethod
+    def _tensor_stats(name, tensor):
+        if tensor is None:
+            return f"{name}: None"
+        flat = tensor.detach().reshape(-1).float()
+        finite = torch.isfinite(flat)
+        if finite.any():
+            f = flat[finite]
+            p95 = torch.quantile(f.abs(), 0.95)
+            return (
+                f"{name}: mean={f.mean().item():.4e}, "
+                f"abs_mean={f.abs().mean().item():.4e}, "
+                f"abs_max={f.abs().max().item():.4e}, "
+                f"p95_abs={p95.item():.4e}, "
+                f"norm={torch.linalg.norm(f).item():.4e}, "
+                f"nan={torch.isnan(flat).sum().item()}, "
+                f"inf={torch.isinf(flat).sum().item()}"
+            )
+        return (
+            f"{name}: all_non_finite, "
+            f"nan={torch.isnan(flat).sum().item()}, "
+            f"inf={torch.isinf(flat).sum().item()}"
+        )
+
+    def _debug_flow_spike(self, batch, times, input_lattice, lattices, rand_l, grad_f, grad_l, target_f, loss_coord):
+        num_atoms_f = batch.num_atoms.float()
+        det_in = torch.det(input_lattice.detach())
+        delta_l = (lattices - rand_l).detach()
+        grad_ratio = torch.linalg.norm(grad_f.detach()) / (torch.linalg.norm(target_f.detach()) + 1e-8)
+
+        print(f"[flow-debug] epoch={self.current_epoch}, stage={self.learning_stage}, loss_coord={loss_coord.item():.4e}")
+        print(
+            f"[flow-debug] times: min={times.min().item()}, "
+            f"mean={times.float().mean().item():.2f}, max={times.max().item()}"
+        )
+        print(
+            f"[flow-debug] num_atoms: min={num_atoms_f.min().item():.0f}, "
+            f"mean={num_atoms_f.mean().item():.2f}, max={num_atoms_f.max().item():.0f}"
+        )
+        print(self._tensor_stats("target_f", target_f))
+        print(self._tensor_stats("pred_f(-grad_f)", -grad_f))
+        print(self._tensor_stats("grad_l", grad_l))
+        print(self._tensor_stats("det(input_lattice)", det_in))
+        print(self._tensor_stats("delta_lattice(l-rand)", delta_l))
+        print(f"[flow-debug] grad_f/target_f norm ratio={grad_ratio.item():.4e}")
+
     def get_static_noise(self,scaled_positions,cells,mode="uni"):
         scaled_positions_noise = torch.rand_like(scaled_positions)
         if mode == "uni":
@@ -587,7 +634,7 @@ class CSPEnergyMatching(BaseModule):
         frac_coords = batch.frac_coords
 
         #rand_x,rand_l = torch.rand_like(frac_coords),torch.rand_like(lattices)
-        rand_x,rand_l = self.get_static_noise(frac_coords,lattices,mode="uni")
+        rand_x,rand_l = self.get_static_noise(frac_coords,lattices,mode="rand")
         # lattices,_ = self.rot_tril(lattices)
         input_lattice = rand_l+(lattices-rand_l)*times.view(-1,1,1)/self.time_steps
         input_frac_coords = rand_x + self.wrapped_distance_vector(rand_x,frac_coords)*(times.repeat_interleave(batch.num_atoms)[:, None])/self.time_steps
@@ -606,8 +653,21 @@ class CSPEnergyMatching(BaseModule):
                 grad_f, grad_l = grad([pred_e.sum()], [input_frac_coords,input_lattice],create_graph=True,allow_unused=True)
         loss_lattice = F.mse_loss(-grad_l, lattices-rand_l)
         # grad_x = (grad_f.view(-1,1,3)@input_lattice.detach().transpose(-1,-2).repeat_interleave(batch.num_atoms,dim=0)).squeeze(1)
-        loss_coord = F.mse_loss((-grad_f), self.wrapped_distance_vector(rand_x,frac_coords))
-
+        target_f = self.wrapped_distance_vector(rand_x,frac_coords)
+        loss_coord = F.mse_loss((-grad_f), target_f)
+        if self.i>100:
+            if loss_coord>0.1:
+                self._debug_flow_spike(
+                    batch=batch,
+                    times=times,
+                    input_lattice=input_lattice,
+                    lattices=lattices,
+                    rand_l=rand_l,
+                    grad_f=grad_f,
+                    grad_l=grad_l,
+                    target_f=target_f,
+                    loss_coord=loss_coord,
+                )
         loss = (
             self.hparams.cost_lattice * loss_lattice +
             self.hparams.cost_coord * loss_coord)
@@ -970,4 +1030,3 @@ class CSPEnergyMatching(BaseModule):
         f"val_ene_loss={m['val_ene_loss']:.4e}"
         )
         print(msg)
-
