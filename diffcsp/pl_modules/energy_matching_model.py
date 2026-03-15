@@ -1,4 +1,5 @@
 import math, copy
+from pathlib import Path
 
 import numpy as np
 
@@ -27,7 +28,7 @@ from hotpp.utils import (
 from diffcsp.common.utils import PROJECT_ROOT
 from diffcsp.common.data_utils import (
     EPSILON, cart_to_frac_coords, mard, lengths_angles_to_volume, lattice_params_to_matrix_torch,
-    frac_to_cart_coords, min_distance_sqr_pbc)
+    frac_to_cart_coords, min_distance_sqr_pbc, chemical_symbols)
 MAX_ATOMIC_NUM=100
 
 from diffcsp.pl_modules.diff_utils import d_log_p_wrapped_normal,get_static_noise
@@ -468,6 +469,8 @@ class CSPEnergyMatching(BaseModule):
         self.time_embedding = SinusoidalTimeEmbeddings(self.time_dim)
         self.keep_lattice = self.hparams.cost_lattice < 1e-5
         self.keep_coords = self.hparams.cost_coord < 1e-5
+        self.bad_grad_f_abs_threshold = float(getattr(self.hparams, "bad_grad_f_abs_threshold", 20.0))
+        self.bad_xyz_path = Path(getattr(self.hparams, "bad_xyz_path", "./bad.xyz"))
         # for test
         self.i = 0
 
@@ -510,7 +513,50 @@ class CSPEnergyMatching(BaseModule):
             f"inf={torch.isinf(flat).sum().item()}"
         )
 
-    def _debug_flow_spike(self, batch, times, input_lattice, lattices, rand_l, grad_f, grad_l, target_f, loss_coord):
+    @rank_zero_only
+    def _append_bad_structures_xyz(self, batch, times, input_frac_coords, input_lattice, grad_f):
+        atom_abs_max = grad_f.detach().abs().amax(dim=-1)
+        graph_abs_max = scatter(atom_abs_max, batch.batch, dim=0, reduce="max")
+        atom_has_non_finite = (~torch.isfinite(grad_f.detach()).all(dim=-1)).float()
+        graph_has_non_finite = scatter(atom_has_non_finite, batch.batch, dim=0, reduce="max") > 0
+        bad_mask = (graph_abs_max > self.bad_grad_f_abs_threshold) | graph_has_non_finite
+        bad_indices = torch.where(bad_mask)[0]
+
+        if bad_indices.numel() == 0:
+            return 0
+
+        num_atoms = batch.num_atoms.detach().cpu().tolist()
+        atom_types = batch.atom_types.detach().cpu()
+        frac_coords = (input_frac_coords.detach() % 1.0).cpu()
+        lattices = input_lattice.detach().cpu()
+        times_cpu = times.detach().cpu()
+        atom_starts = np.cumsum([0] + num_atoms[:-1]).tolist()
+
+        self.bad_xyz_path.parent.mkdir(parents=True, exist_ok=True)
+        with self.bad_xyz_path.open("a", encoding="utf-8") as fout:
+            for graph_idx in bad_indices.detach().cpu().tolist():
+                start = atom_starts[graph_idx]
+                end = start + num_atoms[graph_idx]
+                frac = frac_coords[start:end]
+                lattice = lattices[graph_idx]
+                cart = frac @ lattice
+                atom_z = atom_types[start:end].long().tolist()
+                grad_abs_max = graph_abs_max[graph_idx].item()
+                now_t = int(times_cpu[graph_idx].item())
+                comment = (
+                    f"bad_grad_f epoch={self.current_epoch} stage={self.learning_stage} "
+                    f"graph={graph_idx} t={now_t} grad_abs_max={grad_abs_max:.6e} "
+                    f"threshold={self.bad_grad_f_abs_threshold:.6e}"
+                )
+                fout.write(f"{num_atoms[graph_idx]}\n")
+                fout.write(f"{comment}\n")
+                for z, xyz in zip(atom_z, cart.tolist()):
+                    symbol = chemical_symbols[z] if 0 <= z < len(chemical_symbols) else f"Z{z}"
+                    fout.write(f"{symbol:>3s} {xyz[0]: .8f} {xyz[1]: .8f} {xyz[2]: .8f}\n")
+
+        return int(bad_indices.numel())
+
+    def _debug_flow_spike(self, batch, times, input_frac_coords, input_lattice, lattices, rand_l, grad_f, grad_l, target_f, loss_coord):
         num_atoms_f = batch.num_atoms.float()
         det_in = torch.det(input_lattice.detach())
         delta_l = (lattices - rand_l).detach()
@@ -531,6 +577,17 @@ class CSPEnergyMatching(BaseModule):
         print(self._tensor_stats("det(input_lattice)", det_in))
         print(self._tensor_stats("delta_lattice(l-rand)", delta_l))
         print(f"[flow-debug] grad_f/target_f norm ratio={grad_ratio.item():.4e}")
+        num_saved = self._append_bad_structures_xyz(
+            batch=batch,
+            times=times,
+            input_frac_coords=input_frac_coords,
+            input_lattice=input_lattice,
+            grad_f=grad_f,
+        )
+        if num_saved is None:
+            num_saved = 0
+        if num_saved > 0:
+            print(f"[flow-debug] appended {num_saved} bad structure(s) to {self.bad_xyz_path}")
 
     def get_static_noise(self,scaled_positions,cells,mode="uni"):
         scaled_positions_noise = torch.rand_like(scaled_positions)
@@ -654,12 +711,15 @@ class CSPEnergyMatching(BaseModule):
         loss_lattice = F.mse_loss(-grad_l, lattices-rand_l)
         # grad_x = (grad_f.view(-1,1,3)@input_lattice.detach().transpose(-1,-2).repeat_interleave(batch.num_atoms,dim=0)).squeeze(1)
         target_f = self.wrapped_distance_vector(rand_x,frac_coords)
-        loss_coord = F.mse_loss((-grad_f), target_f)
+        # loss_coord = F.mse_loss((-grad_f), target_f)
+        # Von Mises-like loss for better handling of periodicity
+        loss_coord = (1 - torch.cos(2 * np.pi * (target_f+grad_f))).mean()
         if self.i>100:
             if loss_coord>0.1:
                 self._debug_flow_spike(
                     batch=batch,
                     times=times,
+                    input_frac_coords=input_frac_coords,
                     input_lattice=input_lattice,
                     lattices=lattices,
                     rand_l=rand_l,
