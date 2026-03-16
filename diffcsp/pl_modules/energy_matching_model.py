@@ -1,4 +1,5 @@
 import math, copy
+from pathlib import Path
 
 import numpy as np
 
@@ -33,6 +34,9 @@ from diffcsp.pl_modules.diff_utils import d_log_p_wrapped_normal,get_static_nois
 from scipy.optimize import linear_sum_assignment
 
 import pdb
+import ase
+from ase import Atoms
+from ase.io import write
 
 
 class BaseModule(pl.LightningModule):
@@ -469,6 +473,123 @@ class CSPEnergyMatching(BaseModule):
         self.keep_coords = self.hparams.cost_coord < 1e-5
         # for test
         self.i = 0
+        self._flow_spike_dump_count = 0
+
+    @rank_zero_only
+    def _dump_anomalous_force_structures(
+        self,
+        batch,
+        times,
+        input_frac_coords,
+        input_lattice,
+        pred_f,
+        target_f,
+        pred_l,
+        target_l,
+        loss_coord,
+    ):
+        pred_abs_threshold = float(getattr(self.hparams, "debug_pred_force_abs_threshold", 2.0))
+        max_atoms_per_crystal = int(getattr(self.hparams, "debug_max_atoms_per_crystal", 20))
+        max_crystals_per_batch = int(getattr(self.hparams, "debug_max_crystals_per_batch", 4))
+        max_total_dumps = int(getattr(self.hparams, "debug_max_total_dumps", 2000))
+        if self._flow_spike_dump_count >= max_total_dumps:
+            return
+
+        pred_f_detach = pred_f.detach()
+        target_f_detach = target_f.detach()
+        pred_l_detach = pred_l.detach()
+        target_l_detach = target_l.detach()
+        frac_detach = input_frac_coords.detach()
+        lattice_detach = input_lattice.detach()
+        atom_types_detach = batch.atom_types.detach()
+        num_atoms_list = batch.num_atoms.detach().tolist()
+        times_detach = times.detach()
+
+        abs_max_component = pred_f_detach.abs().max(dim=-1).values
+        abnormal_mask = abs_max_component > pred_abs_threshold
+        abnormal_idx_global = torch.nonzero(abnormal_mask, as_tuple=False).flatten()
+        if abnormal_idx_global.numel() == 0:
+            return
+
+        debug_root = Path(PROJECT_ROOT) / "debug_flow_spikes"
+        debug_root.mkdir(parents=True, exist_ok=True)
+
+        atom_start = 0
+        dumped = 0
+        for crystal_idx, n_atoms in enumerate(num_atoms_list):
+            if dumped >= max_crystals_per_batch or self._flow_spike_dump_count >= max_total_dumps:
+                break
+            atom_end = atom_start + n_atoms
+            crystal_abnormal_mask = abnormal_mask[atom_start:atom_end]
+            if not crystal_abnormal_mask.any():
+                atom_start = atom_end
+                continue
+
+            local_abnormal_idx = torch.nonzero(crystal_abnormal_mask, as_tuple=False).flatten()
+            local_abs = abs_max_component[atom_start:atom_end][local_abnormal_idx]
+            topk = min(max_atoms_per_crystal, local_abnormal_idx.numel())
+            topk_local_order = torch.topk(local_abs, k=topk, largest=True).indices
+            local_abnormal_idx = local_abnormal_idx[topk_local_order]
+
+            crystal_frac = frac_detach[atom_start:atom_end] % 1.0
+            crystal_cell = lattice_detach[crystal_idx]
+            crystal_numbers = atom_types_detach[atom_start:atom_end].long().cpu().numpy()
+
+            atoms = Atoms(
+                numbers=crystal_numbers,
+                scaled_positions=crystal_frac.cpu().numpy(),
+                cell=crystal_cell.cpu().numpy(),
+                pbc=True,
+            )
+            atoms.arrays["pred_f"] = pred_f_detach[atom_start:atom_end].cpu().numpy()
+            atoms.arrays["target_f"] = target_f_detach[atom_start:atom_end].cpu().numpy()
+            atoms.arrays["abnormal_force_atom"] = crystal_abnormal_mask.long().cpu().numpy()
+            atoms.info["epoch"] = int(self.current_epoch)
+            atoms.info["global_step"] = int(self.global_step)
+            atoms.info["learning_stage"] = str(self.learning_stage)
+            atoms.info["loss_coord"] = float(loss_coord.detach().item())
+            atoms.info["interp_time"] = float(times_detach[crystal_idx].item())
+            atoms.info["pred_lattice_force"] = pred_l_detach[crystal_idx].cpu().numpy().tolist()
+            atoms.info["target_lattice_force"] = target_l_detach[crystal_idx].cpu().numpy().tolist()
+            atoms.info["abnormal_atom_local_indices"] = local_abnormal_idx.cpu().numpy().tolist()
+
+            file_stem = (
+                f"epoch{int(self.current_epoch):04d}_step{int(self.global_step):08d}"
+                f"_c{crystal_idx:03d}_t{int(times_detach[crystal_idx].item()):04d}"
+            )
+            out_path = debug_root / f"{file_stem}.extxyz"
+            write(str(out_path), atoms, format="extxyz")
+
+            detail_path = debug_root / f"{file_stem}.txt"
+            with open(detail_path, "w", encoding="utf-8") as f:
+                f.write(f"loss_coord: {float(loss_coord.detach().item()):.8e}\n")
+                f.write(f"interp_time: {float(times_detach[crystal_idx].item()):.6f}\n")
+                f.write(f"crystal_idx: {crystal_idx}\n")
+                f.write(f"num_atoms: {n_atoms}\n")
+                f.write(f"pred_lattice_force:\n{pred_l_detach[crystal_idx].cpu().numpy()}\n")
+                f.write(f"target_lattice_force:\n{target_l_detach[crystal_idx].cpu().numpy()}\n")
+                f.write("abnormal_atoms(local_idx, pred_f, target_f):\n")
+                for local_idx in local_abnormal_idx.cpu().tolist():
+                    global_idx = atom_start + local_idx
+                    f.write(
+                        f"{local_idx:4d} "
+                        f"pred={pred_f_detach[global_idx].cpu().numpy()} "
+                        f"target={target_f_detach[global_idx].cpu().numpy()}\n"
+                    )
+
+            print(
+                f"[flow-debug] dumped anomalous structure to {out_path} "
+                f"(abnormal_atoms={local_abnormal_idx.numel()}, threshold={pred_abs_threshold:.2f})"
+            )
+            dumped += 1
+            self._flow_spike_dump_count += 1
+            atom_start = atom_end
+
+        if dumped == 0:
+            print(
+                f"[flow-debug] no crystal-level dump, but found "
+                f"{abnormal_idx_global.numel()} abnormal atoms globally"
+            )
 
     def epsilon_strategy(self,eps,step):
         now_time = self.dt*step
@@ -509,11 +630,26 @@ class CSPEnergyMatching(BaseModule):
             f"inf={torch.isinf(flat).sum().item()}"
         )
 
-    def _debug_flow_spike(self, batch, times, input_lattice, lattices, rand_l, grad_f, grad_l, target_f, loss_coord):
+    def _debug_flow_spike(
+        self,
+        batch,
+        times,
+        input_frac_coords,
+        input_lattice,
+        lattices,
+        rand_l,
+        grad_f,
+        grad_l,
+        target_f,
+        loss_coord,
+    ):
         num_atoms_f = batch.num_atoms.float()
         det_in = torch.det(input_lattice.detach())
         delta_l = (lattices - rand_l).detach()
         grad_ratio = torch.linalg.norm(grad_f.detach()) / (torch.linalg.norm(target_f.detach()) + 1e-8)
+        pred_f = -grad_f
+        pred_l = -grad_l
+        target_l = delta_l
 
         print(f"[flow-debug] epoch={self.current_epoch}, stage={self.learning_stage}, loss_coord={loss_coord.item():.4e}")
         print(
@@ -525,11 +661,23 @@ class CSPEnergyMatching(BaseModule):
             f"mean={num_atoms_f.mean().item():.2f}, max={num_atoms_f.max().item():.0f}"
         )
         print(self._tensor_stats("target_f", target_f))
-        print(self._tensor_stats("pred_f(-grad_f)", -grad_f))
+        print(self._tensor_stats("pred_f(-grad_f)", pred_f))
         print(self._tensor_stats("grad_l", grad_l))
         print(self._tensor_stats("det(input_lattice)", det_in))
         print(self._tensor_stats("delta_lattice(l-rand)", delta_l))
         print(f"[flow-debug] grad_f/target_f norm ratio={grad_ratio.item():.4e}")
+
+        self._dump_anomalous_force_structures(
+            batch=batch,
+            times=times,
+            input_frac_coords=input_frac_coords,
+            input_lattice=input_lattice,
+            pred_f=pred_f,
+            target_f=target_f,
+            pred_l=pred_l,
+            target_l=target_l,
+            loss_coord=loss_coord,
+        )
 
     def get_static_noise(self,scaled_positions,cells,mode="uni"):
         scaled_positions_noise = torch.rand_like(scaled_positions)
@@ -667,16 +815,17 @@ class CSPEnergyMatching(BaseModule):
         loss_lattice = F.mse_loss(-grad_l, lattices-rand_l)
         # grad_x = (grad_f.view(-1,1,3)@input_lattice.detach().transpose(-1,-2).repeat_interleave(batch.num_atoms,dim=0)).squeeze(1)
         target_f = self.wrapped_distance_vector(rand_x,frac_coords)
-        # loss_coord = F.mse_loss((-grad_f), target_f)
+        loss_coord = F.mse_loss((-grad_f), target_f)
         # Von Mises-like loss for better handling of periodicity
         # loss_coord = (1 - torch.cos(2 * np.pi * (target_f+grad_f))).mean()
         # unwrapped MSE loss
-        loss_coord = self.unwrapped_mse(-grad_f, target_f)
+        # loss_coord = self.unwrapped_mse(-grad_f, target_f)
         if self.i>100:
             if loss_coord>0.1:
                 self._debug_flow_spike(
                     batch=batch,
                     times=times,
+                    input_frac_coords=input_frac_coords,
                     input_lattice=input_lattice,
                     lattices=lattices,
                     rand_l=rand_l,
