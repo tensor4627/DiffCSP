@@ -489,7 +489,7 @@ class CSPEnergyMatching(BaseModule):
         loss_coord,
     ):
         pred_abs_threshold = float(getattr(self.hparams, "debug_pred_force_abs_threshold", 2.0))
-        max_atoms_per_crystal = int(getattr(self.hparams, "debug_max_atoms_per_crystal", 20))
+        max_atoms_per_crystal = int(getattr(self.hparams, "debug_max_atoms_per_crystal", 24))
         max_crystals_per_batch = int(getattr(self.hparams, "debug_max_crystals_per_batch", 4))
         max_total_dumps = int(getattr(self.hparams, "debug_max_total_dumps", 2000))
         if self._flow_spike_dump_count >= max_total_dumps:
