@@ -1,4 +1,4 @@
-_target_: diffcsp.pl_modules.energy_model.CSPEnergyMatching
+_target_: diffcsp.pl_modules.energy_matching_model.CSPEnergyMatching
 time_dim: 256
 latent_dim: 0
 cost_coord: 1.
@@ -15,6 +15,6 @@ flow_warm_epochs: 2000
 
 
 defaults:
-  - decoder: scalar_cspnet
+  - decoder: scalar_softcspnet
   - beta_scheduler: cosine
   - sigma_scheduler: wrapped

@@ -231,3 +231,36 @@ class SinusoidalTimeEmbeddings(nn.Module):
         embeddings = time[:, None] * embeddings[None, :]
         embeddings = torch.cat((embeddings.sin(), embeddings.cos()), dim=-1)
         return embeddings
+
+
+def soften_coordinates_piecewise(
+    x: torch.Tensor,
+    eps: float = 1e-3,
+    r_in: float = 0.05,
+    r_out: float = 0.15,
+    tiny: float = 1e-12,
+) -> torch.Tensor:
+    """
+    对 (N, 3) 坐标/向量做分段短程软化。
+    r <= r_in   : 完全使用 soft 模长
+    r >= r_out  : 完全保持原模长
+    中间区域     : 五次 smoothstep 平滑过渡
+    """
+    assert r_out > r_in
+
+    r2 = (x * x).sum(dim=-1, keepdim=True)
+    r = torch.sqrt(r2 + tiny)
+    r_soft = torch.sqrt(r2 + eps * eps)
+
+    t = (r - r_in) / (r_out - r_in)
+    s = smoothstep5(t)
+    w = 1.0 - s
+
+    r_tilde = w * r_soft + (1.0 - w) * r
+    scale = r_tilde / (r + tiny)
+    x_tilde = x * scale
+    return x_tilde
+
+def smoothstep5(x: torch.Tensor) -> torch.Tensor:
+    x = torch.clamp(x, 0.0, 1.0)
+    return x * x * x * (10.0 + x * (-15.0 + 6.0 * x))
