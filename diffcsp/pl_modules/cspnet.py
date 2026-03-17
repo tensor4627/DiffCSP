@@ -752,7 +752,7 @@ class SoftCSPNet(nn.Module):
         pred_type = False,
         pred_scalar = False
     ):
-        super(CSPNet, self).__init__()
+        super().__init__()
 
         self.ip = ip
         self.smooth = smooth
