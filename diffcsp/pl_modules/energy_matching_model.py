@@ -471,6 +471,10 @@ class CSPEnergyMatching(BaseModule):
         self.time_embedding = SinusoidalTimeEmbeddings(self.time_dim)
         self.keep_lattice = self.hparams.cost_lattice < 1e-5
         self.keep_coords = self.hparams.cost_coord < 1e-5
+        self.flow_coord_soft_clip = float(getattr(self.hparams, "flow_coord_soft_clip", 0.5))
+        self.flow_coord_soft_clip_core = float(
+            getattr(self.hparams, "flow_coord_soft_clip_core", 0.45)
+        )
         # for test
         self.i = 0
         self._flow_spike_dump_count = 0
@@ -605,6 +609,26 @@ class CSPEnergyMatching(BaseModule):
     def wrapped_distance_vector(start_fpos,end_fpos):
         dis = end_fpos-start_fpos
         return dis-torch.round(dis)
+
+    @staticmethod
+    def piecewise_soft_clip_preserve_core(x, clip_value, core_value):
+        if clip_value is None or clip_value <= 0:
+            return x
+        if core_value is None:
+            core_value = 0.9 * clip_value
+        core_value = max(0.0, min(float(core_value), float(clip_value) - 1e-8))
+        if core_value <= 0:
+            return clip_value * torch.tanh(x / clip_value)
+
+        abs_x = x.abs()
+        sign_x = x.sign()
+        delta = clip_value - core_value
+
+        # |x| <= core_value: identity mapping
+        # |x| > core_value: smooth exponential tail approaching clip_value
+        tail = core_value + delta * (1.0 - torch.exp(-(abs_x - core_value) / delta))
+        out_abs = torch.where(abs_x <= core_value, abs_x, tail)
+        return sign_x * out_abs
 
     @staticmethod
     def _tensor_stats(name, tensor):
@@ -815,7 +839,12 @@ class CSPEnergyMatching(BaseModule):
         loss_lattice = F.mse_loss(-grad_l, lattices-rand_l)
         # grad_x = (grad_f.view(-1,1,3)@input_lattice.detach().transpose(-1,-2).repeat_interleave(batch.num_atoms,dim=0)).squeeze(1)
         target_f = self.wrapped_distance_vector(rand_x,frac_coords)
-        loss_coord = F.mse_loss((-grad_f), target_f)
+        pred_f = self.piecewise_soft_clip_preserve_core(
+            -grad_f,
+            self.flow_coord_soft_clip,
+            self.flow_coord_soft_clip_core,
+        )
+        loss_coord = F.mse_loss(pred_f, target_f)
         # Von Mises-like loss for better handling of periodicity
         # loss_coord = (1 - torch.cos(2 * np.pi * (target_f+grad_f))).mean()
         # unwrapped MSE loss
