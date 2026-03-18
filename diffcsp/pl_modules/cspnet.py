@@ -879,7 +879,8 @@ class SoftCSPNet(nn.Module):
             lis = [torch.ones(n,n, device=num_atoms.device) for n in num_atoms]
             fc_graph = torch.block_diag(*lis)
             fc_edges, _ = dense_to_sparse(fc_graph)
-            frac_diff = (frac_coords[fc_edges[1]] - frac_coords[fc_edges[0]]) % 1.
+            frac_diff = frac_coords[fc_edges[1]] - frac_coords[fc_edges[0]]
+            frac_diff = frac_diff - torch.round(frac_diff)
             num_bonds = num_atoms * num_atoms
             return fc_edges, frac_diff, num_bonds
         elif self.edge_style == 'knn':
@@ -901,9 +902,10 @@ class SoftCSPNet(nn.Module):
 
     def forward(self, t, atom_types, frac_coords, lattices, num_atoms, node2graph):
         edges, frac_diff,num_bonds = self.gen_edges(num_atoms, frac_coords, lattices, node2graph)
-        cart_diff = (frac_diff.view(-1,1,3)@lattices.repeat_interleave(num_bonds,dim=0)).squeeze(1)
-        cart_diff = soften_coordinates_piecewise(cart_diff,tiny=1e-6)
-        frac_diff = (cart_diff.view(-1,1,3)@lattices.inverse().repeat_interleave(num_bonds,dim=0)).squeeze(1)
+        frac_diff = frac_diff - torch.round(frac_diff)
+        # cart_diff = (frac_diff.view(-1,1,3)@lattices.repeat_interleave(num_bonds,dim=0)).squeeze(1)
+        frac_diff = soften_coordinates_piecewise(frac_diff,tiny=1e-6,r_in=0.001,r_out=0.005)
+        # frac_diff = (cart_diff.view(-1,1,3)@lattices.inverse().repeat_interleave(num_bonds,dim=0)).squeeze(1)
         edge2graph = node2graph[edges[0]]
         if self.smooth:
             node_features = self.node_embedding(atom_types)
