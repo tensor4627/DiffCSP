@@ -893,17 +893,16 @@ class SoftCSPNet(nn.Module):
             distance_vectors = frac_coords[j_index] - frac_coords[i_index]
             distance_vectors += to_jimages.float()
 
-            edge_index_new, _, _, edge_vector_new = self.reorder_symmetric_edges(edge_index, to_jimages, num_bonds, distance_vectors)
+            edge_index_new, _, num_bonds, edge_vector_new = self.reorder_symmetric_edges(edge_index, to_jimages, num_bonds, distance_vectors)
 
-            return edge_index_new, -edge_vector_new
+            return edge_index_new, -edge_vector_new,num_bonds
             
 
     def forward(self, t, atom_types, frac_coords, lattices, num_atoms, node2graph):
-
-        edges, frac_diff = self.gen_edges(num_atoms, frac_coords, lattices, node2graph)
-        cart_diff = (frac_diff.view(-1,1,3)@lattices.repeat_interleave(num_atoms,dim=0)).squeeze(1)
+        edges, frac_diff,num_bonds = self.gen_edges(num_atoms, frac_coords, lattices, node2graph)
+        cart_diff = (frac_diff.view(-1,1,3)@lattices.repeat_interleave(num_bonds,dim=0)).squeeze(1)
         cart_diff = soften_coordinates_piecewise(cart_diff,tiny=1e-6)
-        frac_diff = (cart_diff.view(-1,1,3)@lattices.inverse().repeat_interleave(num_atoms,dim=0)).squeeze(1)
+        frac_diff = (cart_diff.view(-1,1,3)@lattices.inverse().repeat_interleave(num_bonds,dim=0)).squeeze(1)
         edge2graph = node2graph[edges[0]]
         if self.smooth:
             node_features = self.node_embedding(atom_types)
