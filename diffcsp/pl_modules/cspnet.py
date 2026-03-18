@@ -895,7 +895,7 @@ class SoftCSPNet(nn.Module):
 
             edge_index_new, _, num_bonds, edge_vector_new = self.reorder_symmetric_edges(edge_index, to_jimages, num_bonds, distance_vectors)
 
-            return edge_index_new, -edge_vector_new,num_bonds
+            return edge_index_new, -edge_vector_new, num_bonds
             
 
     def forward(self, t, atom_types, frac_coords, lattices, num_atoms, node2graph):
