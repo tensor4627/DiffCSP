@@ -904,7 +904,13 @@ class SoftCSPNet(nn.Module):
         edges, frac_diff,num_bonds = self.gen_edges(num_atoms, frac_coords, lattices, node2graph)
         frac_diff = frac_diff - torch.round(frac_diff)
         # cart_diff = (frac_diff.view(-1,1,3)@lattices.repeat_interleave(num_bonds,dim=0)).squeeze(1)
-        frac_diff = soften_coordinates_piecewise(frac_diff,tiny=1e-6,r_in=0.001,r_out=0.005)
+        frac_diff = soften_coordinates_piecewise(
+            frac_diff,
+            eps=8e-4,
+            tiny=5e-4,
+            r_in=1e-3,
+            r_out=1e-1,
+        )
         # frac_diff = (cart_diff.view(-1,1,3)@lattices.inverse().repeat_interleave(num_bonds,dim=0)).squeeze(1)
         edge2graph = node2graph[edges[0]]
         if self.smooth:
