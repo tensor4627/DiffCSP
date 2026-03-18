@@ -875,12 +875,13 @@ class SoftCSPNet(nn.Module):
         )
 
     def gen_edges(self, num_atoms, frac_coords, lattices, node2graph):
-
         if self.edge_style == 'fc':
             lis = [torch.ones(n,n, device=num_atoms.device) for n in num_atoms]
             fc_graph = torch.block_diag(*lis)
             fc_edges, _ = dense_to_sparse(fc_graph)
-            return fc_edges, (frac_coords[fc_edges[1]] - frac_coords[fc_edges[0]]) % 1.
+            frac_diff = (frac_coords[fc_edges[1]] - frac_coords[fc_edges[0]]) % 1.
+            num_bonds = num_atoms * num_atoms
+            return fc_edges, frac_diff, num_bonds
         elif self.edge_style == 'knn':
             lattice_nodes = lattices[node2graph]
             cart_coords = torch.einsum('bi,bij->bj', frac_coords, lattice_nodes)
