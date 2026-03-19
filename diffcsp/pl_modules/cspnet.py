@@ -875,14 +875,12 @@ class SoftCSPNet(nn.Module):
         )
 
     def gen_edges(self, num_atoms, frac_coords, lattices, node2graph):
+
         if self.edge_style == 'fc':
             lis = [torch.ones(n,n, device=num_atoms.device) for n in num_atoms]
             fc_graph = torch.block_diag(*lis)
             fc_edges, _ = dense_to_sparse(fc_graph)
-            frac_diff = frac_coords[fc_edges[1]] - frac_coords[fc_edges[0]]
-            frac_diff = frac_diff - torch.round(frac_diff)
-            num_bonds = num_atoms * num_atoms
-            return fc_edges, frac_diff, num_bonds
+            return fc_edges, (frac_coords[fc_edges[1]] - frac_coords[fc_edges[0]]) % 1.
         elif self.edge_style == 'knn':
             lattice_nodes = lattices[node2graph]
             cart_coords = torch.einsum('bi,bij->bj', frac_coords, lattice_nodes)
@@ -895,23 +893,15 @@ class SoftCSPNet(nn.Module):
             distance_vectors = frac_coords[j_index] - frac_coords[i_index]
             distance_vectors += to_jimages.float()
 
-            edge_index_new, _, num_bonds, edge_vector_new = self.reorder_symmetric_edges(edge_index, to_jimages, num_bonds, distance_vectors)
+            edge_index_new, _, _, edge_vector_new = self.reorder_symmetric_edges(edge_index, to_jimages, num_bonds, distance_vectors)
 
-            return edge_index_new, -edge_vector_new, num_bonds
+            return edge_index_new, -edge_vector_new
+            
             
 
     def forward(self, t, atom_types, frac_coords, lattices, num_atoms, node2graph):
-        edges, frac_diff,num_bonds = self.gen_edges(num_atoms, frac_coords, lattices, node2graph)
-        frac_diff = frac_diff - torch.round(frac_diff)
-        # cart_diff = (frac_diff.view(-1,1,3)@lattices.repeat_interleave(num_bonds,dim=0)).squeeze(1)
-        frac_diff = soften_coordinates_piecewise(
-            frac_diff,
-            eps=8e-4,
-            tiny=5e-4,
-            r_in=1e-3,
-            r_out=1e-1,
-        )
-        # frac_diff = (cart_diff.view(-1,1,3)@lattices.inverse().repeat_interleave(num_bonds,dim=0)).squeeze(1)
+        edges, frac_diff= self.gen_edges(num_atoms, frac_coords, lattices, node2graph)
+        frac_diff = (frac_diff**2+0.01**2)**1/2
         edge2graph = node2graph[edges[0]]
         if self.smooth:
             node_features = self.node_embedding(atom_types)

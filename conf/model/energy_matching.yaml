@@ -11,8 +11,6 @@ dt: 0.01
 langevin_steps: 200
 lambda_cd: 0.1
 flow_warm_epochs: 2000
-flow_coord_soft_clip: 0.5
-flow_coord_soft_clip_core: 0.45
 
 
 
