@@ -807,7 +807,7 @@ class CSPEnergyMatchingT(BaseModule):
 
         rand_x,rand_l = self.get_static_noise(frac_coords,lattices)
         input_lattice = rand_l+(lattices-rand_l)*times.view(-1,1,1)/max_step
-        input_frac_coords = rand_x + self.wrapped_distance_vector(rand_x,frac_coords)*(times.repeat_interleave(batch.num_atoms)[:, None])/self.max_step
+        input_frac_coords = rand_x + self.wrapped_distance_vector(rand_x,frac_coords)*(times.repeat_interleave(batch.num_atoms)[:, None])/max_step
 
         if self.keep_coords:
             input_frac_coords = frac_coords
@@ -1548,7 +1548,7 @@ class CSPEnergyMatching(BaseModule):
             max_step = self.time_steps
         rand_x,rand_l = self.get_static_noise(frac_coords,lattices)
         input_lattice = rand_l+(lattices-rand_l)*times.view(-1,1,1)/max_step
-        input_frac_coords = rand_x + self.wrapped_distance_vector(rand_x,frac_coords)*(times.repeat_interleave(batch.num_atoms)[:, None])/self.max_step
+        input_frac_coords = rand_x + self.wrapped_distance_vector(rand_x,frac_coords)*(times.repeat_interleave(batch.num_atoms)[:, None])/max_step
 
         if self.keep_coords:
             input_frac_coords = frac_coords
