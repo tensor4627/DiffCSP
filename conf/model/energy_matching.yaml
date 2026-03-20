@@ -13,6 +13,7 @@ langevin_steps: 200
 lambda_cd: 0.1
 flow_warm_epochs: 2000
 lattice_noise_mode: 1
+tau: 0.99999999
 
 
 defaults:
