@@ -1,0 +1,3 @@
+_target_: diffcsp.pl_modules.diff_utils.BetaScheduler
+timesteps: ${flow_time_steps}
+scheduler_mode: cosine
