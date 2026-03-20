@@ -1541,7 +1541,11 @@ class CSPEnergyMatching(BaseModule):
         batch_size = batch.num_graphs
         lattices = lattice_params_to_matrix_torch(batch.lengths, batch.angles)
         frac_coords = batch.frac_coords
-
+        if times == None:
+            times = self.flow_beta_scheduler.uniform_sample_t(batch_size, self.device)
+            max_step = self.flow_time_steps
+        else:
+            max_step = self.time_steps
         rand_x,rand_l = self.get_static_noise(frac_coords,lattices)
         input_lattice = rand_l+(lattices-rand_l)*times.view(-1,1,1)/max_step
         input_frac_coords = rand_x + self.wrapped_distance_vector(rand_x,frac_coords)*(times.repeat_interleave(batch.num_atoms)[:, None])/self.max_step
