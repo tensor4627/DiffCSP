@@ -869,7 +869,7 @@ class CSPEnergyMatchingT(BaseModule):
         flow_loss = self.flow(batch,times = times,max_step = self.time_steps)
         batch_size = batch.num_graphs
         # times = self.beta_scheduler.uniform_sample_t(batch_size, self.device)
-        rand_times = self.beta_scheduler.uniform_sample_t(batch_size, self.device)
+        # rand_times = self.beta_scheduler.uniform_sample_t(batch_size, self.device)
         # times = torch.ones_like(rand_times)*rand_times.max()
         # time_emb = self.time_embedding(times)
 
@@ -1219,6 +1219,8 @@ class CSPEnergyMatching(BaseModule):
         self.keep_lattice = self.hparams.cost_lattice < 1e-5
         self.keep_coords = self.hparams.cost_coord < 1e-5
         self.tau = self.hparams.tau
+        self.langevin_coord_noise = float(getattr(self.hparams, "langevin_coord_noise", 0.1))
+        self.langevin_lattice_noise = float(getattr(self.hparams, "langevin_lattice_noise", 0.5))
         # for test
         self.i = 0
         self._flow_spike_dump_count = 0
@@ -1606,9 +1608,9 @@ class CSPEnergyMatching(BaseModule):
         return pos,cell
     
     def energy_matching(self,batch):
+        batch_size = batch.num_graphs
         times = self.beta_scheduler.uniform_sample_t(batch_size, self.device)
         flow_loss = self.flow(batch,times = times,max_step = self.time_steps)
-        batch_size = batch.num_graphs
 
         lattices = lattice_params_to_matrix_torch(batch.lengths, batch.angles)
         frac_coords = batch.frac_coords

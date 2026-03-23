@@ -5,11 +5,13 @@ cost_coord: 1.
 cost_lattice: 1.
 max_neighbors: 20  # maximum number of neighbors for OTF graph bulding in decoder
 radius: 7.  # maximum search radius for OTF graph building in decoder
-timesteps: 1500
+timesteps: 1000
 flow_timesteps: 1000
-learning_stage: flow
+learning_stage: energy
 dt: 0.01
-langevin_steps: 200
+langevin_steps: 150
+langevin_coord_noise: 0.1
+langevin_lattice_noise: 0.5
 lambda_cd: 0.1
 flow_warm_epochs: 2000
 lattice_noise_mode: 1
