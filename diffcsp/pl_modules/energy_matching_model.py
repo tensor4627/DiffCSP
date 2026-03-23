@@ -1622,6 +1622,7 @@ class CSPEnergyMatching(BaseModule):
         for i in range(self.langevin_steps):
             now_time = self.dt*i
             l_pos,l_cell = self.langevin_step(l_pos.detach(),l_cell.detach(),batch,step_size=self.dt,std=(2*self.dt*self.epsilon_strategy(eps=1.,now_time=now_time))**0.5)
+        print("end langevin loop")
         _,_,neg_e = self.get_forces(l_pos,l_cell,batch)
         _,_,pos_e = self.get_forces(frac_coords,lattices,batch)
         energy_loss = torch.mean(pos_e)-torch.mean(neg_e)
