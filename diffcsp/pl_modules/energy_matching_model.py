@@ -1626,8 +1626,8 @@ class CSPEnergyMatching(BaseModule):
         _,_,neg_e = self.get_forces(l_pos,l_cell,batch)
         _,_,pos_e = self.get_forces(frac_coords,lattices,batch)
         energy_loss = torch.mean(pos_e)-torch.mean(neg_e)
-        flow_loss["loss_energy"] = energy_loss
-        flow_loss["loss"]+=energy_loss
+        flow_loss["loss_energy"] = self.lambda_cd*energy_loss
+        flow_loss["loss"]+=energy_loss*self.lambda_cd
         return flow_loss
     
     @torch.no_grad()
