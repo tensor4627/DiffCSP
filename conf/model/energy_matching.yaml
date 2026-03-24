@@ -7,13 +7,13 @@ max_neighbors: 20  # maximum number of neighbors for OTF graph bulding in decode
 radius: 7.  # maximum search radius for OTF graph building in decoder
 timesteps: 1000
 flow_timesteps: 1000
-learning_stage: energy
-dt: 0.04
-langevin_steps: 50
+learning_stage: flow
+dt: 0.05
+langevin_steps: 40
 langevin_coord_noise: 0.01
 langevin_lattice_noise: 0.05
-lambda_cd: 0.0001
-flow_warm_epochs: 2000
+lambda_cd: 0.01
+flow_warm_epochs: 1000
 lattice_noise_mode: 1
 tau: 0.99999999
 

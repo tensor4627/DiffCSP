@@ -1924,8 +1924,9 @@ class CSPEnergyMatching(BaseModule):
     @rank_zero_only
     def on_validation_epoch_end(self):
         self.i+=1
-        if self.i>self.flow_warm_epochs:
+        if self.i==self.flow_warm_epochs:
             self.learning_stage="energy"
+            print("[Energy-Matching Log]: Now switch to energy-matching strategy.")
         m = self.trainer.callback_metrics
 
         msg = (
