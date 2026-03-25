@@ -14,7 +14,7 @@ langevin_coord_noise: 0.01
 langevin_lattice_noise: 0.01
 lambda_cd: 0.01
 flow_warm_epochs: 1000
-lattice_noise_mode: 1
+lattice_noise_mode: 2
 tau: 0.99999999
 
 
