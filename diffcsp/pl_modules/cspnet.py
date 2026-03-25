@@ -1105,7 +1105,7 @@ class SoftNoTimeCSPNet(nn.Module):
 
     def forward(self, atom_types, frac_coords, lattices, num_atoms, node2graph):
         edges, frac_diff= self.gen_edges(num_atoms, frac_coords, lattices, node2graph)
-        frac_diff = (frac_diff**2+0.01**2)**1/2
+        frac_diff = (frac_diff**2+0.1**2)**1/2
         edge2graph = node2graph[edges[0]]
         if self.smooth:
             node_features = self.node_embedding(atom_types)
