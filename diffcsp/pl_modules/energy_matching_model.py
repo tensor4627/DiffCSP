@@ -1221,6 +1221,7 @@ class CSPEnergyMatching(BaseModule):
         self.tau = self.hparams.tau
         self.langevin_coord_noise = float(getattr(self.hparams, "langevin_coord_noise", 0.1))
         self.langevin_lattice_noise = float(getattr(self.hparams, "langevin_lattice_noise", 0.5))
+        self.sample_times = float(getattr(self.hparams, "langevin_sample_time", 3))
         # for test
         self.i = 0
         self._flow_spike_dump_count = 0
@@ -1429,9 +1430,10 @@ class CSPEnergyMatching(BaseModule):
             loss_coord=loss_coord,
         )
 
-    def get_static_noise(self,scaled_positions,cells,mode=1):
+    def get_static_noise(self,scaled_positions,cells,mode=None):
         scaled_positions_noise = torch.rand_like(scaled_positions)
-        mode = self.lattice_noise_mode
+        if mode == None:
+            mode = self.lattice_noise_mode
         if mode == 2:
             a_low,a_high = 2.4,12.8
             alpha_low,alpha_high = 60,120
@@ -1590,19 +1592,21 @@ class CSPEnergyMatching(BaseModule):
             'loss_energy': torch.zeros_like(loss_coord)
         }
 
-    def get_forces(self,frac_pos,cell,batch):
+    def get_forces(self,frac_pos,cell,batch,decoder = None):
+        if decoder == None:
+            decoder = self.decoder
         with torch.enable_grad():
             with RequiresGradContext(frac_pos, cell, requires_grad=True):
-                pred_e = (self.decoder(batch.atom_types, frac_pos,cell, batch.num_atoms, batch.batch))
+                pred_e = (decoder(batch.atom_types, frac_pos,cell, batch.num_atoms, batch.batch))
                 # grad_f, grad_l = grad(pred_e, [input_frac_coords,input_lattice], grad_outputs = grad_outputs,create_graph=True,allow_unused=True)
                 grad_f, grad_l = grad([pred_e.sum()], [frac_pos,cell],create_graph=True,allow_unused=True)
                 # grad_x = (grad_f.view(-1,1,3)@cell.detach().transpose(-1,-2).repeat_interleave(batch.num_atoms,dim=0)).squeeze(1)
         return -grad_f,-grad_l,pred_e
     
-    def langevin_step(self,pos,cell,batch,step_size,std):
+    def langevin_step(self,pos,cell,batch,step_size,std,decoder = None):
         tpos = pos.clone().detach()
         tcell = cell.clone().detach()
-        fpos_forces,lattice_forces,_ = self.get_forces(tpos,tcell,batch)
+        fpos_forces,lattice_forces,_ = self.get_forces(tpos,tcell,batch,decoder=decoder)
         pos = pos + step_size * fpos_forces + std*self.langevin_coord_noise * torch.randn_like(pos)
         cell=cell + step_size * lattice_forces + std *self.langevin_lattice_noise* torch.randn_like(cell)
         return pos,cell
@@ -1622,7 +1626,6 @@ class CSPEnergyMatching(BaseModule):
         for i in range(self.langevin_steps):
             now_time = self.dt*i
             l_pos,l_cell = self.langevin_step(l_pos.detach(),l_cell.detach(),batch,step_size=self.dt,std=(2*self.dt*self.epsilon_strategy(eps=1.,now_time=now_time))**0.5)
-        print("end langevin loop")
         _,_,neg_e = self.get_forces(l_pos,l_cell,batch)
         _,_,pos_e = self.get_forces(frac_coords,lattices,batch)
         energy_loss = torch.mean(pos_e)-torch.mean(neg_e)
@@ -1631,168 +1634,51 @@ class CSPEnergyMatching(BaseModule):
         return flow_loss
     
     @torch.no_grad()
-    def sample(self, batch, uncod, diff_ratio = 1.0, step_lr = 1e-5, aug = 1.0):
+    def sample(self, batch,sample_time = -1):
 
         batch_size = batch.num_graphs
 
         l_T, x_T = torch.randn([batch_size, 3, 3]).to(self.device), torch.rand([batch.num_nodes, 3]).to(self.device)
+        scaled_positions_noise,cells_noise = self.get_static_noise(scaled_positions=x_T,cells=l_T)
+        if sample_time <1:
+            sample_time = self.sample_times
+        self.sample_langevin_steps = int(sample_time/self.dt)
 
-        update_type = self.update_type
+        l_fpos = scaled_positions_noise.clone().detach()
+        l_cell = cells_noise.clone().detach()
 
-
-        t_T = torch.randn([batch.num_nodes, MAX_ATOMIC_NUM]).to(self.device) if update_type else F.one_hot(batch.atom_types - 1, num_classes=MAX_ATOMIC_NUM).float()
-
-
-        
-        if diff_ratio < 1:
-            time_start = int(self.beta_scheduler.timesteps * diff_ratio)
-            lattices = lattice_params_to_matrix_torch(batch.lengths, batch.angles)
-            atom_types_onehot = F.one_hot(batch.atom_types - 1, num_classes=MAX_ATOMIC_NUM).float()
-            frac_coords = batch.frac_coords
-            rand_l, rand_x = torch.randn_like(lattices), torch.randn_like(frac_coords)
-            rand_t = torch.randn_like(atom_types_onehot)
-            alphas_cumprod = self.beta_scheduler.alphas_cumprod[time_start]
-            beta = self.beta_scheduler.betas[time_start]
-            c0 = torch.sqrt(alphas_cumprod)
-            c1 = torch.sqrt(1. - alphas_cumprod)
-            sigmas = self.sigma_scheduler.sigmas[time_start]
-            l_T = c0 * lattices + c1 * rand_l
-            x_T = (frac_coords + sigmas * rand_x) % 1.
-            t_T = c0 * atom_types_onehot + c1 * rand_t if update_type else atom_types_onehot
-
-        else:
-            time_start = self.beta_scheduler.timesteps
-
-        traj = {time_start : {
-            'num_atoms' : batch.num_atoms,
-            'atom_types' : t_T,
-            'frac_coords' : x_T % 1.,
-            'lattices' : l_T
-        }}
-
-        for t in tqdm(range(time_start, 0, -1)):
-
-            times = torch.full((batch_size, ), t, device = self.device)
-
-            time_emb = self.time_embedding(times)
-
-            if self.hparams.latent_dim > 0:            
-                time_emb = torch.cat([time_emb, z], dim = -1)
-
-            rand_l = torch.randn_like(l_T) if t > 1 else torch.zeros_like(l_T)
-            rand_t = torch.randn_like(t_T) if t > 1 else torch.zeros_like(t_T)
-            rand_x = torch.randn_like(x_T)
-            
-            alphas = self.beta_scheduler.alphas[t]
-            alphas_cumprod = self.beta_scheduler.alphas_cumprod[t]
-
-            sigmas = self.beta_scheduler.sigmas[t]
-            sigma_x = self.sigma_scheduler.sigmas[t]
-            sigma_norm = self.sigma_scheduler.sigmas_norm[t]
-
-            c0 = 1.0 / torch.sqrt(alphas)
-            c1 = (1 - alphas) / torch.sqrt(1 - alphas_cumprod)
-            c2 = (1 - alphas) / torch.sqrt(alphas)
-
-            x_t = traj[t]['frac_coords']
-            l_t = traj[t]['lattices']
-            t_t = traj[t]['atom_types']
-
-            # Corrector
-
-            rand_l = torch.randn_like(l_T) if t > 1 else torch.zeros_like(l_T)
-            rand_t = torch.randn_like(t_T) if t > 1 else torch.zeros_like(t_T)
-            rand_x = torch.randn_like(x_T) if t > 1 else torch.zeros_like(x_T)
-
-            step_size = step_lr * (sigma_x / self.sigma_scheduler.sigma_begin) ** 2
-            std_x = torch.sqrt(2 * step_size)
-
-            if update_type:
-
-                pred_l, pred_x, pred_t = uncod.decoder(time_emb, t_t, x_t, l_t, batch.num_atoms, batch.batch)
-                pred_x = pred_x * torch.sqrt(sigma_norm)
-                x_t_minus_05 = x_t - step_size * pred_x + std_x * rand_x
-                l_t_minus_05 = l_t
-                t_t_minus_05 = t_t
-            
-            else:
-
-                t_t_one = t_T.argmax(dim=-1).long() + 1
-                pred_l, pred_x = uncod.decoder(time_emb, t_t_one, x_t, l_t, batch.num_atoms, batch.batch)
-                pred_x = pred_x * torch.sqrt(sigma_norm)
-                x_t_minus_05 = x_t - step_size * pred_x + std_x * rand_x
-                l_t_minus_05 = l_t
-                t_t_minus_05 = t_T
-
-
-            # Predictor
-
-            rand_l = torch.randn_like(l_T) if t > 1 else torch.zeros_like(l_T)
-            rand_t = torch.randn_like(t_T) if t > 1 else torch.zeros_like(t_T)
-            rand_x = torch.randn_like(x_T) if t > 1 else torch.zeros_like(x_T)
-
-            adjacent_sigma_x = self.sigma_scheduler.sigmas[t-1] 
-            step_size = (sigma_x ** 2 - adjacent_sigma_x ** 2)
-            std_x = torch.sqrt((adjacent_sigma_x ** 2 * (sigma_x ** 2 - adjacent_sigma_x ** 2)) / (sigma_x ** 2))   
-
-            if update_type:
-
-                pred_l, pred_x, pred_t = uncod.decoder(time_emb, t_t_minus_05, x_t_minus_05, l_t_minus_05, batch.num_atoms, batch.batch)
-
-                with torch.enable_grad():
-                    with RequiresGradContext(t_t_minus_05, x_t_minus_05, l_t_minus_05, requires_grad=True):
-                        pred_e = self.decoder(time_emb, t_t_minus_05, x_t_minus_05, l_t_minus_05, batch.num_atoms, batch.batch)
-                        grad_outputs = [torch.ones_like(pred_e)]
-                        grad_t, grad_x, grad_l = grad(pred_e, [t_t_minus_05, x_t_minus_05, l_t_minus_05], grad_outputs = grad_outputs, allow_unused=True)
-
-                pred_x = pred_x * torch.sqrt(sigma_norm)
-
-
-                x_t_minus_1 = x_t_minus_05 - step_size * pred_x - (std_x ** 2) * aug * grad_x + std_x * rand_x 
-
-                l_t_minus_1 = c0 * (l_t_minus_05 - c1 * pred_l) - (sigmas ** 2) * aug * grad_l + sigmas * rand_l 
-
-                t_t_minus_1 = c0 * (t_t_minus_05 - c1 * pred_t) - (sigmas ** 2) * aug * grad_t + sigmas * rand_t
-
-            else:
-
-                t_t_one = t_T.argmax(dim=-1).long() + 1
-
-                pred_l, pred_x = uncod.decoder(time_emb, t_t_one, x_t_minus_05, l_t_minus_05, batch.num_atoms, batch.batch)
-
-                with torch.enable_grad():
-                    with RequiresGradContext(x_t_minus_05, l_t_minus_05, requires_grad=True):
-                        pred_e = self.decoder(time_emb, t_T, x_t_minus_05, l_t_minus_05, batch.num_atoms, batch.batch)
-                        grad_outputs = [torch.ones_like(pred_e)]
-                        grad_x, grad_l = grad(pred_e, [x_t_minus_05, l_t_minus_05], grad_outputs = grad_outputs, allow_unused=True)
-
-                pred_x = pred_x * torch.sqrt(sigma_norm)
-
-                x_t_minus_1 = x_t_minus_05 - step_size * pred_x - (std_x ** 2) * aug * grad_x + std_x * rand_x 
-
-                l_t_minus_1 = c0 * (l_t_minus_05 - c1 * pred_l) - (sigmas ** 2) * aug * grad_l + sigmas * rand_l 
-
-                t_t_minus_1 = t_T
-
-
-            traj[t - 1] = {
+        traj = {}
+        langevin_step = 0
+        for langevin_step in tqdm(range(0,self.sample_langevin_steps,1)):
+            traj[langevin_step] = {
                 'num_atoms' : batch.num_atoms,
-                'atom_types' : t_t_minus_1,
-                'frac_coords' : x_t_minus_1 % 1.,
-                'lattices' : l_t_minus_1              
+                'atom_types' : batch.atom_types,
+                'frac_coords' : l_fpos % 1.,
+                'lattices' : l_cell              
             }
+            now_time = self.dt * langevin_step
+            l_fpos,l_cell = self.langevin_step(l_fpos.detach(),l_cell.detach(),batch,
+                               step_size=self.dt,std=(2*self.dt*self.epsilon_strategy(eps=1.,now_time=now_time))**0.5,
+                               decoder=self.decoder)
+
+        traj[langevin_step+1] ={
+                'num_atoms' : batch.num_atoms,
+                'atom_types' : batch.atom_types,
+                'frac_coords' : l_fpos % 1.,
+                'lattices' : l_cell              
+        }
 
         traj_stack = {
             'num_atoms' : batch.num_atoms,
-            'atom_types' : torch.stack([traj[i]['atom_types'] for i in range(time_start, -1, -1)]).argmax(dim=-1) + 1,
-            'all_frac_coords' : torch.stack([traj[i]['frac_coords'] for i in range(time_start, -1, -1)]),
-            'all_lattices' : torch.stack([traj[i]['lattices'] for i in range(time_start, -1, -1)])
+            'atom_types' : batch.atom_types,
+            'all_frac_coords' : torch.stack([traj[i]['frac_coords'] for i in range(0, langevin_step+2, 1)]),
+            'all_lattices' : torch.stack([traj[i]['lattices'] for i in range(0, langevin_step+2, 1)])
         }
 
-        res = traj[0]
-        res['atom_types'] = res['atom_types'].argmax(dim=-1) + 1
+        res = traj[langevin_step+1]
+        res['atom_types'] = batch.atom_types
 
-        return traj[0], traj_stack
+        return traj[langevin_step+1], traj_stack
 
     def multinomial_sample(self, t_t, pred_t, num_atoms, times):
         
