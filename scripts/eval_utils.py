@@ -94,7 +94,7 @@ def load_config(model_path):
     return cfg
 
 
-def load_model(model_path, load_data=False, testing=True):
+def load_model(model_path, load_data=False, testing=True, test_num_workers=None):
     with initialize_config_dir(str(model_path)):
         cfg = compose(config_name='hparams')
         model = hydra.utils.instantiate(
@@ -127,6 +127,8 @@ def load_model(model_path, load_data=False, testing=True):
                 cfg.data.datamodule, _recursive_=False, scaler_path=model_path
             )
             if testing:
+                if test_num_workers is not None:
+                    datamodule.num_workers.test = int(test_num_workers)
                 datamodule.setup('test')
                 test_loader = datamodule.test_dataloader()[0]
             else:

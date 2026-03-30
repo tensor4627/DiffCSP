@@ -69,8 +69,9 @@ def diffusion(loader, model, num_evals, sample_time = None):
 def main(args):
     # load_data if do reconstruction.
     model_path = Path(args.model_path)
+    test_num_workers = args.num_workers if args.num_workers >= 0 else None
     model, test_loader, cfg = load_model(
-        model_path, load_data=True)
+        model_path, load_data=True, test_num_workers=test_num_workers)
 
     if torch.cuda.is_available():
         model.to('cuda')
@@ -105,6 +106,7 @@ if __name__ == '__main__':
     parser.add_argument('--dataset', required=True)
     parser.add_argument('--sample_time', default=3, type=float)
     parser.add_argument('--num_evals', default=1, type=int)
+    parser.add_argument('--num_workers', default=-1, type=int)
     parser.add_argument('--label', default='')
     args = parser.parse_args()
     main(args)
