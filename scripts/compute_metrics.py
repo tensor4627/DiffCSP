@@ -13,6 +13,7 @@ import pandas as pd
 from pymatgen.core.structure import Structure
 from pymatgen.core.composition import Composition
 from pymatgen.core.lattice import Lattice
+from pymatgen.core import Element
 from pymatgen.analysis.structure_matcher import StructureMatcher
 
 from pyxtal import pyxtal
@@ -391,6 +392,52 @@ def get_gt_crys_ori(cif, compute_fingerprints=False):
     }
     return Crystal(crys_array_dict, compute_fingerprints=compute_fingerprints)
 
+
+def crystal_to_xyz_block(crys, comment=''):
+    if not getattr(crys, 'constructed', False):
+        return None
+    atom_types = np.array(crys.atom_types).astype(int).tolist()
+    cart_coords = crys.structure.cart_coords
+    lines = [str(len(atom_types)), comment]
+    for z, xyz in zip(atom_types, cart_coords):
+        symbol = Element.from_Z(int(z)).symbol
+        lines.append(f"{symbol} {xyz[0]:.8f} {xyz[1]:.8f} {xyz[2]:.8f}")
+    return '\n'.join(lines)
+
+
+def save_best_multi_eval_xyz(pred_crys, gt_crys, all_rms_dis, out_path):
+    # pred_crys: [num_evals][num_structures]
+    all_rms_dis = np.array(all_rms_dis, dtype=float)
+    num_evals, num_structures = all_rms_dis.shape
+    xyz_blocks = []
+    matched = 0
+
+    for i in range(num_structures):
+        rms_col = all_rms_dis[:, i]
+        valid = np.isfinite(rms_col)
+        if not np.any(valid):
+            continue
+        best_eval_idx = int(np.argmin(np.where(valid, rms_col, np.inf)))
+        best_rms = float(rms_col[best_eval_idx])
+        block = crystal_to_xyz_block(
+            pred_crys[best_eval_idx][i],
+            comment=f"gt_idx={i} best_eval={best_eval_idx} rms={best_rms:.8f}",
+        )
+        if block is None:
+            continue
+        xyz_blocks.append(block)
+        matched += 1
+
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text('\n'.join(xyz_blocks) + ('\n' if len(xyz_blocks) > 0 else ''))
+    return {
+        'matched': matched,
+        'total': num_structures,
+        'num_evals': num_evals,
+        'path': str(out_path),
+    }
+
 def main(args):
     all_metrics = {}
 
@@ -454,6 +501,22 @@ def main(args):
 
         all_metrics.update(recon_metrics)
 
+        if args.multi_eval and args.best_xyz_file != '':
+            xyz_path = Path(args.best_xyz_file)
+            if not xyz_path.is_absolute():
+                xyz_path = Path(args.root_path) / xyz_path
+            best_xyz_info = save_best_multi_eval_xyz(
+                pred_crys=pred_crys,
+                gt_crys=gt_crys,
+                all_rms_dis=rec_evaluator.all_rms_dis,
+                out_path=xyz_path,
+            )
+            print(
+                f"Saved best-match xyz to {best_xyz_info['path']} "
+                f"({best_xyz_info['matched']}/{best_xyz_info['total']} matched, "
+                f"num_evals={best_xyz_info['num_evals']})."
+            )
+
    
 
     print(all_metrics)
@@ -488,5 +551,6 @@ if __name__ == '__main__':
     parser.add_argument('--tasks', nargs='+', default=['csp'])
     parser.add_argument('--gt_file',default='')
     parser.add_argument('--multi_eval',action='store_true')
+    parser.add_argument('--best_xyz_file', default='')
     args = parser.parse_args()
     main(args)
