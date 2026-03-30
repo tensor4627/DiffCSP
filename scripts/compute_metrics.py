@@ -14,8 +14,6 @@ from pymatgen.core.structure import Structure
 from pymatgen.core.composition import Composition
 from pymatgen.core.lattice import Lattice
 from pymatgen.analysis.structure_matcher import StructureMatcher
-from matminer.featurizers.site.fingerprint import CrystalNNFingerprint
-from matminer.featurizers.composition.composite import ElementProperty
 
 from pyxtal import pyxtal
 
@@ -28,8 +26,24 @@ from eval_utils import (
     smact_validity, structure_validity, CompScaler, get_fp_pdist,
     load_config, load_data, get_crystals_list, prop_model_eval, compute_cov)
 
-CrystalNNFP = CrystalNNFingerprint.from_preset("ops")
-CompFP = ElementProperty.from_preset('magpie')
+CrystalNNFP = None
+CompFP = None
+
+
+def ensure_matminer():
+    global CrystalNNFP, CompFP
+    if CrystalNNFP is not None and CompFP is not None:
+        return
+    try:
+        from matminer.featurizers.site.fingerprint import CrystalNNFingerprint as _CrystalNNFingerprint
+        from matminer.featurizers.composition.composite import ElementProperty as _ElementProperty
+    except ImportError as exc:
+        raise ImportError(
+            "matminer is required for fingerprint-based metrics (for example coverage in `gen`). "
+            "Install it with `pip install matminer`."
+        ) from exc
+    CrystalNNFP = _CrystalNNFingerprint.from_preset("ops")
+    CompFP = _ElementProperty.from_preset('magpie')
 
 Percentiles = {
     'mp20': np.array([-3.17562208, -2.82196882, -2.52814761]),
@@ -46,7 +60,7 @@ COV_Cutoffs = {
 
 class Crystal(object):
 
-    def __init__(self, crys_array_dict):
+    def __init__(self, crys_array_dict, compute_fingerprints=False):
         self.frac_coords = crys_array_dict['frac_coords']
         self.atom_types = crys_array_dict['atom_types']
         self.lengths = crys_array_dict['lengths']
@@ -59,7 +73,10 @@ class Crystal(object):
         self.get_structure()
         self.get_composition()
         self.get_validity()
-        self.get_fingerprints()
+        self.comp_fp = None
+        self.struct_fp = None
+        if compute_fingerprints:
+            self.get_fingerprints()
 
 
     def get_structure(self):
@@ -102,6 +119,7 @@ class Crystal(object):
         self.valid = self.comp_valid and self.struct_valid
 
     def get_fingerprints(self):
+        ensure_matminer()
         elem_counter = Counter(self.atom_types)
         comp = Composition(elem_counter)
         self.comp_fp = CompFP.featurize(comp)
@@ -362,7 +380,7 @@ def get_crystal_array_list(file_path, batch_idx=0):
     return crys_array_list, true_crystal_array_list
 
 
-def get_gt_crys_ori(cif):
+def get_gt_crys_ori(cif, compute_fingerprints=False):
     structure = Structure.from_str(cif,fmt='cif')
     lattice = structure.lattice
     crys_array_dict = {
@@ -371,7 +389,7 @@ def get_gt_crys_ori(cif):
         'lengths': np.array(lattice.abc),
         'angles': np.array(lattice.angles)
     }
-    return Crystal(crys_array_dict) 
+    return Crystal(crys_array_dict, compute_fingerprints=compute_fingerprints)
 
 def main(args):
     all_metrics = {}
@@ -382,7 +400,7 @@ def main(args):
     if 'opt' in args.tasks:
         opt_file_path = get_file_paths(args.root_path, 'opt', args.label)
         crys_array_list, _ = get_crystal_array_list(opt_file_path)
-        opt_crys = p_map(lambda x: Crystal(x), crys_array_list)
+        opt_crys = p_map(lambda x: Crystal(x, compute_fingerprints=False), crys_array_list)
 
         opt_evaluator = OptEval(opt_crys, eval_model_name=eval_model_name)
         opt_metrics = opt_evaluator.get_metrics()
@@ -393,14 +411,14 @@ def main(args):
         gen_file_path = get_file_paths(args.root_path, 'gen', args.label)
         recon_file_path = get_file_paths(args.root_path, 'recon', args.label)
         crys_array_list, _ = get_crystal_array_list(gen_file_path, batch_idx = -2)
-        gen_crys = p_map(lambda x: Crystal(x), crys_array_list)
+        gen_crys = p_map(lambda x: Crystal(x, compute_fingerprints=True), crys_array_list)
         if args.gt_file != '':
             csv = pd.read_csv(args.gt_file)
-            gt_crys = p_map(get_gt_crys_ori, csv['cif'])
+            gt_crys = p_map(lambda x: get_gt_crys_ori(x, compute_fingerprints=True), csv['cif'])
         else:
             _, true_crystal_array_list = get_crystal_array_list(
                 recon_file_path)
-            gt_crys = p_map(lambda x: Crystal(x), true_crystal_array_list)
+            gt_crys = p_map(lambda x: Crystal(x, compute_fingerprints=True), true_crystal_array_list)
         gen_evaluator = GenEval(
             gen_crys, gt_crys, eval_model_name=eval_model_name)
         gen_metrics = gen_evaluator.get_metrics()
@@ -417,15 +435,15 @@ def main(args):
             csv = pd.read_csv(args.gt_file)
             gt_crys = p_map(get_gt_crys_ori, csv['cif'])
         else:
-            gt_crys = p_map(lambda x: Crystal(x), true_crystal_array_list)
+            gt_crys = p_map(lambda x: Crystal(x, compute_fingerprints=False), true_crystal_array_list)
 
         if not args.multi_eval:
-            pred_crys = p_map(lambda x: Crystal(x), crys_array_list)
+            pred_crys = p_map(lambda x: Crystal(x, compute_fingerprints=False), crys_array_list)
         else:
             pred_crys = []
             for i in range(len(crys_array_list)):
                 print(f"Processing batch {i}")
-                pred_crys.append(p_map(lambda x: Crystal(x), crys_array_list[i]))   
+                pred_crys.append(p_map(lambda x: Crystal(x, compute_fingerprints=False), crys_array_list[i]))   
 
         if args.multi_eval:
             rec_evaluator = RecEvalBatch(pred_crys, gt_crys)
