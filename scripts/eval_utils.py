@@ -9,8 +9,12 @@ from hydra.experimental import compose
 from hydra import initialize_config_dir
 from pathlib import Path
 
-import smact
-from smact.screening import pauling_test
+try:
+    import smact
+    from smact.screening import pauling_test
+except ImportError:
+    smact = None
+    pauling_test = None
 
 import sys
 sys.path.append('.')
@@ -170,6 +174,11 @@ def get_crystals_list(
 def smact_validity(comp, count,
                    use_pauling_test=True,
                    include_alloys=True):
+    if smact is None:
+        raise ImportError(
+            "smact is required for validity metrics. "
+            "Install it with `pip install smact` and rerun metric evaluation."
+        )
     elem_symbols = tuple([chemical_symbols[elem] for elem in comp])
     space = smact.element_dictionary(elem_symbols)
     smact_elems = [e[1] for e in space.items()]
