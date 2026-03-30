@@ -20,7 +20,7 @@ import copy
 import numpy as np
 
 
-def diffusion(loader, model, num_evals, sample_time = None):
+def diffusion(loader, model, num_evals, sample_time = None, eps = 1.0):
 
     frac_coords = []
     num_atoms = []
@@ -38,7 +38,7 @@ def diffusion(loader, model, num_evals, sample_time = None):
         for eval_idx in range(num_evals):
 
             print(f'batch {idx} / {len(loader)}, sample {eval_idx} / {num_evals}')
-            outputs, traj = model.sample(batch, sample_time = sample_time)
+            outputs, traj = model.sample(batch, sample_time = sample_time, eps = eps)
             batch_frac_coords.append(outputs['frac_coords'].detach().cpu())
             batch_num_atoms.append(outputs['num_atoms'].detach().cpu())
             batch_atom_types.append(outputs['atom_types'].detach().cpu())
@@ -81,7 +81,7 @@ def main(args):
 
     start_time = time.time()
     (frac_coords, atom_types, lattices, lengths, angles, num_atoms, input_data_batch) = diffusion(
-        test_loader, model, args.num_evals, args.sample_time)
+        test_loader, model, args.num_evals, args.sample_time, args.eps)
 
     if args.label == '':
         diff_out_name = 'eval_diff.pt'
@@ -105,6 +105,7 @@ if __name__ == '__main__':
     parser.add_argument('--model_path', required=True)
     parser.add_argument('--dataset', required=True)
     parser.add_argument('--sample_time', default=3, type=float)
+    parser.add_argument('--eps', default=1.0, type=float)
     parser.add_argument('--num_evals', default=1, type=int)
     parser.add_argument('--num_workers', default=-1, type=int)
     parser.add_argument('--label', default='')

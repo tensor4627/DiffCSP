@@ -1634,7 +1634,7 @@ class CSPEnergyMatching(BaseModule):
         return flow_loss
     
     @torch.no_grad()
-    def sample(self, batch,sample_time = -1):
+    def sample(self, batch,sample_time = -1,eps=1.0):
 
         batch_size = batch.num_graphs
 
@@ -1658,7 +1658,7 @@ class CSPEnergyMatching(BaseModule):
             }
             now_time = self.dt * langevin_step
             l_fpos,l_cell = self.langevin_step(l_fpos.detach(),l_cell.detach(),batch,
-                               step_size=self.dt,std=(2*self.dt*self.epsilon_strategy(eps=1.,now_time=now_time))**0.5,
+                               step_size=self.dt,std=(2*self.dt*self.epsilon_strategy(eps=eps,now_time=now_time))**0.5,
                                decoder=self.decoder)
 
         traj[langevin_step+1] ={
@@ -1679,6 +1679,7 @@ class CSPEnergyMatching(BaseModule):
         res['atom_types'] = batch.atom_types
 
         return traj[langevin_step+1], traj_stack
+
 
     def multinomial_sample(self, t_t, pred_t, num_atoms, times):
         

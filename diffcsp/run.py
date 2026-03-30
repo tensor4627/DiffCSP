@@ -50,15 +50,20 @@ def build_callbacks(cfg: DictConfig) -> List[Callback]:
 
     if "model_checkpoints" in cfg.train:
         hydra.utils.log.info("Adding callback <ModelCheckpoint>")
+        ckpt_cfg = cfg.train.model_checkpoints
+        ckpt_kwargs = dict(
+            dirpath=Path(HydraConfig.get().run.dir),
+            monitor=cfg.train.monitor_metric,
+            mode=cfg.train.monitor_metric_mode,
+            save_top_k=ckpt_cfg.save_top_k,
+            verbose=ckpt_cfg.verbose,
+            save_last=ckpt_cfg.save_last,
+        )
+        every_n_epochs = ckpt_cfg.get("every_n_epochs", None)
+        if every_n_epochs is not None and int(every_n_epochs) > 0:
+            ckpt_kwargs["every_n_epochs"] = int(every_n_epochs)
         callbacks.append(
-            ModelCheckpoint(
-                dirpath=Path(HydraConfig.get().run.dir),
-                monitor=cfg.train.monitor_metric,
-                mode=cfg.train.monitor_metric_mode,
-                save_top_k=cfg.train.model_checkpoints.save_top_k,
-                verbose=cfg.train.model_checkpoints.verbose,
-                save_last=cfg.train.model_checkpoints.save_last,
-            )
+            ModelCheckpoint(**ckpt_kwargs)
         )
 
     return callbacks
@@ -151,7 +156,7 @@ def run(cfg: DictConfig) -> None:
         default_root_dir=hydra_dir,
         logger=wandb_logger,
         callbacks=callbacks,
-        devices=cfg.train.pl_trainer.gpus
+        devices=cfg.train.pl_trainer.gpus,
         deterministic=cfg.train.deterministic,
         check_val_every_n_epoch=cfg.logging.val_check_interval,
         progress_bar_refresh_rate=cfg.logging.progress_bar_refresh_rate,

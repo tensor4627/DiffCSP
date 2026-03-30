@@ -74,7 +74,7 @@ train_dist = {
 }
 
 
-def diffusion(loader, model, sample_time = None):
+def diffusion(loader, model, sample_time = None, eps = 1.0):
 
     frac_coords = []
     num_atoms = []
@@ -85,7 +85,7 @@ def diffusion(loader, model, sample_time = None):
 
         if torch.cuda.is_available():
             batch.cuda()
-        outputs, traj = model.sample(batch, sample_time = sample_time)
+        outputs, traj = model.sample(batch, sample_time = sample_time, eps = eps)
         frac_coords.append(outputs['frac_coords'].detach().cpu())
         num_atoms.append(outputs['num_atoms'].detach().cpu())
         atom_types.append(outputs['atom_types'].detach().cpu())
@@ -143,7 +143,7 @@ def main(args):
 
     start_time = time.time()
     (frac_coords, atom_types, lattices, lengths, angles, num_atoms) = diffusion(
-        test_loader, model, args.sample_time)
+        test_loader, model, args.sample_time, args.eps)
 
     if args.label == '':
         gen_out_name = 'eval_gen.pt'
@@ -166,6 +166,7 @@ if __name__ == '__main__':
     parser.add_argument('--model_path', required=True)
     parser.add_argument('--dataset', required=True)
     parser.add_argument('--sample_time', default=3, type=float)
+    parser.add_argument('--eps', default=1.0, type=float)
     parser.add_argument('--num_batches_to_samples', default=20, type=int)
     parser.add_argument('--batch_size', default=500, type=int)
     parser.add_argument('--atom_type', default=6, type=int)
