@@ -438,6 +438,36 @@ def save_best_multi_eval_xyz(pred_crys, gt_crys, all_rms_dis, out_path):
         'path': str(out_path),
     }
 
+
+def save_single_eval_xyz(pred_crys, gt_crys, out_path):
+    num_structures = min(len(pred_crys), len(gt_crys))
+    xyz_blocks = []
+    matched = 0
+
+    for i in range(num_structures):
+        pred = pred_crys[i]
+        gt = gt_crys[i]
+        if (not pred.valid) or (not gt.valid):
+            continue
+        block = crystal_to_xyz_block(
+            pred,
+            comment=f"gt_idx={i} eval_idx=0",
+        )
+        if block is None:
+            continue
+        xyz_blocks.append(block)
+        matched += 1
+
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text('\n'.join(xyz_blocks) + ('\n' if len(xyz_blocks) > 0 else ''))
+    return {
+        'matched': matched,
+        'total': num_structures,
+        'num_evals': 1,
+        'path': str(out_path),
+    }
+
 def main(args):
     all_metrics = {}
 
@@ -501,16 +531,23 @@ def main(args):
 
         all_metrics.update(recon_metrics)
 
-        if args.multi_eval and args.best_xyz_file != '':
+        if args.best_xyz_file != '':
             xyz_path = Path(args.best_xyz_file)
             if not xyz_path.is_absolute():
                 xyz_path = Path(args.root_path) / xyz_path
-            best_xyz_info = save_best_multi_eval_xyz(
-                pred_crys=pred_crys,
-                gt_crys=gt_crys,
-                all_rms_dis=rec_evaluator.all_rms_dis,
-                out_path=xyz_path,
-            )
+            if args.multi_eval:
+                best_xyz_info = save_best_multi_eval_xyz(
+                    pred_crys=pred_crys,
+                    gt_crys=gt_crys,
+                    all_rms_dis=rec_evaluator.all_rms_dis,
+                    out_path=xyz_path,
+                )
+            else:
+                best_xyz_info = save_single_eval_xyz(
+                    pred_crys=pred_crys,
+                    gt_crys=gt_crys,
+                    out_path=xyz_path,
+                )
             print(
                 f"Saved best-match xyz to {best_xyz_info['path']} "
                 f"({best_xyz_info['matched']}/{best_xyz_info['total']} matched, "
