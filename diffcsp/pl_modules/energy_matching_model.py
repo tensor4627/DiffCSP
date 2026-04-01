@@ -30,7 +30,7 @@ from diffcsp.common.data_utils import (
     frac_to_cart_coords, min_distance_sqr_pbc)
 MAX_ATOMIC_NUM=100
 
-from diffcsp.pl_modules.diff_utils import d_log_p_wrapped_normal,get_static_noise,soften_coordinates_piecewise
+from diffcsp.pl_modules.diff_utils import d_log_p_wrapped_normal,get_static_noise,soften_coordinates_piecewise,wrap_coordinates
 from scipy.optimize import linear_sum_assignment
 
 import pdb
@@ -1626,6 +1626,7 @@ class CSPEnergyMatching(BaseModule):
         for i in range(self.langevin_steps):
             now_time = self.dt*i
             l_pos,l_cell = self.langevin_step(l_pos.detach(),l_cell.detach(),batch,step_size=self.dt,std=(2*self.dt*self.epsilon_strategy(eps=1.,now_time=now_time))**0.5)
+            l_pos = wrap_coordinates(l_pos)
         _,_,neg_e = self.get_forces(l_pos,l_cell,batch)
         _,_,pos_e = self.get_forces(frac_coords,lattices,batch)
         energy_loss = torch.mean(pos_e)-torch.mean(neg_e)
@@ -1633,6 +1634,7 @@ class CSPEnergyMatching(BaseModule):
         flow_loss["loss"]+=energy_loss*self.lambda_cd
         return flow_loss
     
+
     @torch.no_grad()
     def sample(self, batch,sample_time = -1,eps=1.0):
 

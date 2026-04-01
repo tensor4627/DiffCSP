@@ -901,7 +901,7 @@ class SoftCSPNet(nn.Module):
 
     def forward(self, t, atom_types, frac_coords, lattices, num_atoms, node2graph):
         edges, frac_diff= self.gen_edges(num_atoms, frac_coords, lattices, node2graph)
-        frac_diff = (frac_diff**2+0.01**2)**1/2
+        frac_diff = (frac_diff**2+0.01**2)**0.5
         edge2graph = node2graph[edges[0]]
         if self.smooth:
             node_features = self.node_embedding(atom_types)
@@ -954,7 +954,8 @@ class SoftNoTimeCSPNet(nn.Module):
         ip = True,
         smooth = False,
         pred_type = False,
-        pred_scalar = False
+        pred_scalar = False,
+        frac_diff_soft_eps = 0.1
     ):
         super().__init__()
 
@@ -990,6 +991,7 @@ class SoftNoTimeCSPNet(nn.Module):
         self.pred_scalar = pred_scalar
         if self.pred_scalar:
             self.scalar_out = nn.Linear(hidden_dim, 1)
+        self.frac_diff_soft_eps = float(frac_diff_soft_eps)
 
     def select_symmetric_edges(self, tensor, mask, reorder_idx, inverse_neg):
         # Mask out counter-edges
@@ -1105,7 +1107,7 @@ class SoftNoTimeCSPNet(nn.Module):
 
     def forward(self, atom_types, frac_coords, lattices, num_atoms, node2graph):
         edges, frac_diff= self.gen_edges(num_atoms, frac_coords, lattices, node2graph)
-        frac_diff = (frac_diff**2+0.1**2)**1/2
+        frac_diff = (frac_diff ** 2 + self.frac_diff_soft_eps ** 2) ** 0.5
         edge2graph = node2graph[edges[0]]
         if self.smooth:
             node_features = self.node_embedding(atom_types)

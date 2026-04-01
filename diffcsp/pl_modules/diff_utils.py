@@ -46,6 +46,8 @@ def sigma_norm(sigma, T=1.0, sn = 10000):
     return (normal_ ** 2).mean(dim = 0)
 
 
+def wrap_coordinates(x, T=1.0):
+    return x % T
 
 
 class BetaScheduler(nn.Module):

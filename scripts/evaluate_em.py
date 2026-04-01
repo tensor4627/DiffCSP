@@ -75,6 +75,7 @@ def main(args):
 
     if torch.cuda.is_available():
         model.to('cuda')
+    model.eval()
 
 
     print('Evaluate the diffusion model.')

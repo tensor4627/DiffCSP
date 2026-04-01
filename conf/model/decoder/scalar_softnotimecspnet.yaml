@@ -12,3 +12,4 @@ cutoff: ${model.radius}
 ln: true
 ip: true
 pred_scalar: true
+frac_diff_soft_eps: 0.1
