@@ -1222,6 +1222,7 @@ class CSPEnergyMatching(BaseModule):
         self.langevin_coord_noise = float(getattr(self.hparams, "langevin_coord_noise", 0.1))
         self.langevin_lattice_noise = float(getattr(self.hparams, "langevin_lattice_noise", 0.5))
         self.sample_times = float(getattr(self.hparams, "langevin_sample_time", 3))
+        self.flow_coord_huber_beta = float(getattr(self.hparams, "flow_coord_huber_beta", 0.4))
         # for test
         self.i = 0
         self._flow_spike_dump_count = 0
@@ -1566,7 +1567,7 @@ class CSPEnergyMatching(BaseModule):
                 grad_f, grad_l = grad([pred_e.sum()], [input_frac_coords,input_lattice],create_graph=True,allow_unused=True)
         loss_lattice = F.mse_loss(-grad_l, lattices-rand_l)
         target_f = self.wrapped_distance_vector(rand_x,frac_coords)
-        loss_coord = F.mse_loss((-grad_f), target_f)
+        loss_coord = F.smooth_l1_loss((-grad_f), target_f, beta=self.flow_coord_huber_beta)
         if self.i>100:
             if loss_coord>0.1:
                 self._debug_flow_spike(
