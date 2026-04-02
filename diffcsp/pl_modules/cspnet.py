@@ -1124,12 +1124,10 @@ class SoftNoTimeCSPNet(nn.Module):
 
         coord_out = self.coord_out(node_features)
 
-        # graph_features = scatter(node_features, node2graph, dim = 0, reduce = 'mean')
+        graph_features = scatter(node_features, node2graph, dim = 0, reduce = 'mean')
 
         if self.pred_scalar:
-            graph_features = scatter(node_features, node2graph, dim = 0, reduce = 'add')
             return self.scalar_out(graph_features)
-        graph_features = scatter(node_features, node2graph, dim = 0, reduce = 'mean')
         lattice_out = self.lattice_out(graph_features)
         lattice_out = lattice_out.view(-1, 3, 3)
         if self.ip:
