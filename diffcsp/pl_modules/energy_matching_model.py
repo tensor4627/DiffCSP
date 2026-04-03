@@ -1561,22 +1561,17 @@ class CSPEnergyMatching(BaseModule):
         if self.keep_lattice:
             input_lattice = lattices
 
-        deform = torch.bmm(input_lattice,input_lattice.inverse().detach())
         input_cart_coords = (input_frac_coords.reshape(-1,1,3)@input_lattice.repeat_interleave(batch.num_atoms,dim=0)).squeeze(1)
         with torch.enable_grad():
-            with RequiresGradContext(input_cart_coords, deform, requires_grad=True):
-                context_input_lattice = torch.bmm(deform,input_lattice.detach())
-                context_input_frac_coords = (input_cart_coords.reshape(-1,1,3)@context_input_lattice.inverse().repeat_interleave(batch.num_atoms,dim=0)).squeeze(1)
+            with RequiresGradContext(input_cart_coords, input_lattice, requires_grad=True):
+                context_input_frac_coords = (input_cart_coords.reshape(-1,1,3)@input_lattice.inverse().repeat_interleave(batch.num_atoms,dim=0)).squeeze(1)
 
-                pred_e_per_atom = self.decoder(batch.atom_types, context_input_frac_coords, context_input_lattice.detach(), batch.num_atoms, batch.batch)
-                grad_x, grad_l = grad([pred_e_per_atom.sum()], [input_cart_coords,deform],create_graph=True,allow_unused=True)
-        
-        forces_p = -grad_x*batch.num_atoms.view(-1,1,1).repeat_interleave(batch.num_atoms,dim=0)
-        frac_forces_p = (forces_p.reshape(-1,1,3)@input_lattice.transpose(-1,-2).repeat_interleave(batch.num_atoms,dim=0)).squeeze(1)
-        virial_p = -grad_l
-        loss_lattice = F.mse_loss(virial_p, torch.bmm(lattices,rand_l.inverse().detach())-torch.eye(3,device=lattices.device).unsqueeze(0))
-        target_f = self.wrapped_distance_vector(rand_x,frac_coords)
-        loss_coord = F.smooth_l1_loss((frac_forces_p), target_f, beta=self.flow_coord_huber_beta)
+                pred_e_per_atom = self.decoder(batch.atom_types, context_input_frac_coords, input_lattice.detach(), batch.num_atoms, batch.batch)
+                grad_x, grad_l = grad([pred_e_per_atom.sum()], [input_cart_coords,input_lattice],create_graph=True,allow_unused=True)
+
+        velocity_f = (-grad_x.reshape(-1,1,3)@input_lattice.inverse().repeat_interleave(batch.num_atoms,dim=0)).squeeze(1)        
+        loss_coord = F.mse_loss(velocity_f, self.wrapped_distance_vector(rand_x,frac_coords))
+        loss_lattice = F.mse_loss(grad_l/batch.num_atoms.view(-1,1,1), (lattices - rand_l)/batch.num_atoms.view(-1,1,1))
         if self.i>100:
             if loss_coord>0.1:
                 self._debug_flow_spike(
@@ -1586,9 +1581,9 @@ class CSPEnergyMatching(BaseModule):
                     input_lattice=input_lattice,
                     lattices=lattices,
                     rand_l=rand_l,
-                    grad_f=frac_forces_p,
+                    grad_f=velocity_f,
                     grad_l=grad_l,
-                    target_f=target_f,
+                    target_f=self.wrapped_distance_vector(rand_x,frac_coords),
                     loss_coord=loss_coord,
                 )
         loss = (
