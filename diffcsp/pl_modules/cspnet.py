@@ -1124,7 +1124,7 @@ class SoftNoTimeCSPNet(nn.Module):
 
         coord_out = self.coord_out(node_features)
 
-        graph_features = scatter(node_features, node2graph, dim = 0, reduce = 'mean')
+        graph_features = scatter(node_features, node2graph, dim = 0, reduce = 'add')
 
         if self.pred_scalar:
             return self.scalar_out(graph_features)
