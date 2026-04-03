@@ -1562,18 +1562,19 @@ class CSPEnergyMatching(BaseModule):
             input_lattice = lattices
 
         input_cart_coords = (input_frac_coords.reshape(-1,1,3)@input_lattice.repeat_interleave(batch.num_atoms,dim=0)).squeeze(1)
+        deform = torch.bmm(input_lattice,input_lattice.inverse().detach())
         with torch.enable_grad():
-            with RequiresGradContext(input_cart_coords, input_lattice, requires_grad=True):
-                context_input_frac_coords = (input_cart_coords.reshape(-1,1,3)@input_lattice.inverse().repeat_interleave(batch.num_atoms,dim=0)).squeeze(1)
-
-                pred_e_per_atom = self.decoder(batch.atom_types, context_input_frac_coords, input_lattice.detach(), batch.num_atoms, batch.batch)
-                grad_x, grad_l = grad([pred_e_per_atom.sum()], [input_cart_coords,input_lattice],create_graph=True,allow_unused=True)
+            with RequiresGradContext(input_cart_coords, deform, requires_grad=True):
+                context_input_lattice = torch.bmm(deform, input_lattice.detach())
+                context_input_frac_coords = (input_cart_coords.reshape(-1,1,3)@context_input_lattice.inverse().repeat_interleave(batch.num_atoms,dim=0)).squeeze(1)
+                pred_e_per_atom = self.decoder(batch.atom_types, context_input_frac_coords, context_input_lattice, batch.num_atoms, batch.batch)
+                grad_x, grad_d = grad([pred_e_per_atom.sum()], [input_cart_coords,deform],create_graph=True,allow_unused=True)
 
         velocity_f = (-grad_x.reshape(-1,1,3)@input_lattice.inverse().repeat_interleave(batch.num_atoms,dim=0)).squeeze(1)        
         loss_coord = F.mse_loss(velocity_f, self.wrapped_distance_vector(rand_x,frac_coords))
 
         deform_diff = torch.bmm((lattices - rand_l),rand_l.inverse())
-        loss_lattice = F.mse_loss(-grad_l/torch.det(input_lattice.detach()), deform_diff)
+        loss_lattice = F.mse_loss(-grad_d/torch.det(input_lattice.detach()).view(-1,1,1), deform_diff)
         if self.i>100:
             if loss_coord>0.1:
                 self._debug_flow_spike(
@@ -1584,7 +1585,7 @@ class CSPEnergyMatching(BaseModule):
                     lattices=lattices,
                     rand_l=rand_l,
                     grad_f=velocity_f,
-                    grad_l=grad_l,
+                    grad_l=grad_d,
                     target_f=self.wrapped_distance_vector(rand_x,frac_coords),
                     loss_coord=loss_coord,
                 )
