@@ -1571,7 +1571,7 @@ class CSPEnergyMatching(BaseModule):
 
         velocity_f = (-grad_x.reshape(-1,1,3)@input_lattice.inverse().repeat_interleave(batch.num_atoms,dim=0)).squeeze(1)        
         loss_coord = F.mse_loss(velocity_f, self.wrapped_distance_vector(rand_x,frac_coords))
-        loss_lattice = F.mse_loss(grad_l/batch.num_atoms.view(-1,1,1), (lattices - rand_l)/batch.num_atoms.view(-1,1,1))
+        loss_lattice = F.mse_loss(-grad_l/batch.num_atoms.view(-1,1,1), (lattices - rand_l)/batch.num_atoms.view(-1,1,1))
         if self.i>100:
             if loss_coord>0.1:
                 self._debug_flow_spike(
