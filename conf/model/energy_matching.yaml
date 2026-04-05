@@ -18,7 +18,6 @@ lattice_noise_mode: 3
 tau: 0.99999999
 flow_coord_huber_beta: 0.4
 ot: true
-grad_clip_val: 5.0
 
 
 defaults:

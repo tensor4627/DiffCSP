@@ -1224,7 +1224,6 @@ class CSPEnergyMatching(BaseModule):
         self.sample_times = float(getattr(self.hparams, "langevin_sample_time", 3))
         self.flow_coord_huber_beta = float(getattr(self.hparams, "flow_coord_huber_beta", 0.4))
         self.use_ot = bool(getattr(self.hparams, "ot", False))
-        self.grad_clip_val = float(getattr(self.hparams, "grad_clip_val", 0.0))
         # for test
         self.i = 0
         self._flow_spike_dump_count = 0
@@ -1785,10 +1784,6 @@ class CSPEnergyMatching(BaseModule):
 
 
 
-
-    def configure_gradient_clipping(self, optimizer, optimizer_idx=0, gradient_clip_val=None, gradient_clip_algorithm=None):
-        if self.grad_clip_val > 0:
-            self.clip_gradients(optimizer, gradient_clip_val=self.grad_clip_val, gradient_clip_algorithm="norm")
 
     def training_step(self, batch: Any, batch_idx: int) -> torch.Tensor:
         output_dict = self(batch)
