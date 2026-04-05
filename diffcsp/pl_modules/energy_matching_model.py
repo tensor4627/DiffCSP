@@ -1223,6 +1223,8 @@ class CSPEnergyMatching(BaseModule):
         self.langevin_lattice_noise = float(getattr(self.hparams, "langevin_lattice_noise", 0.5))
         self.sample_times = float(getattr(self.hparams, "langevin_sample_time", 3))
         self.flow_coord_huber_beta = float(getattr(self.hparams, "flow_coord_huber_beta", 0.4))
+        self.use_ot = bool(getattr(self.hparams, "ot", False))
+        self.grad_clip_val = float(getattr(self.hparams, "grad_clip_val", 0.0))
         # for test
         self.i = 0
         self._flow_spike_dump_count = 0
@@ -1542,6 +1544,35 @@ class CSPEnergyMatching(BaseModule):
         else:
             return self.energy_matching(batch)
 
+    @staticmethod
+    def _ot_match_noise_to_coords(rand_x, frac_coords, batch_idx, atom_types):
+        """
+        For each (crystal, element) group, reorder rand_x (noise) so that
+        the assignment minimises Σ ||rand_x_σ(i) - frac_coords_i||².
+        This ensures trajectories are as short as possible and do not cross,
+        preventing large gradient spikes during flow training.
+        """
+        new_rand_x = rand_x.clone()
+        for g in batch_idx.unique():
+            crystal_mask = (batch_idx == g)
+            for z in atom_types[crystal_mask].unique():
+                group_mask = crystal_mask & (atom_types == z)
+                idx = group_mask.nonzero(as_tuple=True)[0]
+                if idx.numel() <= 1:
+                    continue
+                src = rand_x[idx]       # (n, 3) – noise
+                tgt = frac_coords[idx]  # (n, 3) – target (fixed)
+                # cost[i, j] = ||rand_x[i] - frac_coords[j]||² (wrapped)
+                diff = tgt.unsqueeze(0) - src.unsqueeze(1)  # (n_src, n_tgt, 3)
+                diff = diff - torch.round(diff)
+                cost = (diff ** 2).sum(-1)                  # (n_src, n_tgt)
+                # minimise Σ cost[σ(i), i]  →  solve on transposed cost
+                # linear_sum_assignment returns (arange(n), col_perm); col_perm[i] = σ(i)
+                _, col_ind = linear_sum_assignment(cost.T.detach().cpu().numpy())
+                col_ind_t = torch.from_numpy(col_ind).to(idx.device)
+                new_rand_x[idx] = src[col_ind_t]
+        return new_rand_x
+
     def flow(self,batch,times = None,max_step = None):
         batch_size = batch.num_graphs
         lattices = lattice_params_to_matrix_torch(batch.lengths, batch.angles)
@@ -1552,6 +1583,8 @@ class CSPEnergyMatching(BaseModule):
         else:
             max_step = self.time_steps
         rand_x,rand_l = self.get_static_noise(frac_coords,lattices)
+        if self.use_ot:
+            rand_x = self._ot_match_noise_to_coords(rand_x, frac_coords, batch.batch, batch.atom_types)
         input_lattice = rand_l+(lattices-rand_l)*times.view(-1,1,1)/max_step
         input_frac_coords = rand_x + self.wrapped_distance_vector(rand_x,frac_coords)*(times.repeat_interleave(batch.num_atoms)[:, None])/max_step
 
@@ -1562,18 +1595,18 @@ class CSPEnergyMatching(BaseModule):
             input_lattice = lattices
 
         input_cart_coords = (input_frac_coords.reshape(-1,1,3)@input_lattice.repeat_interleave(batch.num_atoms,dim=0)).squeeze(1)
-        deform = torch.bmm(input_lattice,input_lattice.inverse().detach())
+        deform = torch.bmm(rand_l.inverse().detach(),input_lattice)
         with torch.enable_grad():
             with RequiresGradContext(input_cart_coords, deform, requires_grad=True):
                 context_input_lattice = torch.bmm(deform, input_lattice.detach())
                 context_input_frac_coords = (input_cart_coords.reshape(-1,1,3)@context_input_lattice.inverse().repeat_interleave(batch.num_atoms,dim=0)).squeeze(1)
-                pred_e_per_atom = self.decoder(batch.atom_types, context_input_frac_coords, context_input_lattice, batch.num_atoms, batch.batch)
-                grad_x, grad_d = grad([pred_e_per_atom.sum()], [input_cart_coords,deform],create_graph=True,allow_unused=True)
+                pred_e = self.decoder(batch.atom_types, context_input_frac_coords, context_input_lattice, batch.num_atoms, batch.batch)
+                grad_x, grad_d = grad([pred_e.sum()], [input_cart_coords,deform],create_graph=True,allow_unused=True)
 
         velocity_f = (-grad_x.reshape(-1,1,3)@input_lattice.inverse().repeat_interleave(batch.num_atoms,dim=0)).squeeze(1)        
         loss_coord = F.mse_loss(velocity_f, self.wrapped_distance_vector(rand_x,frac_coords))
 
-        deform_diff = torch.bmm((lattices - rand_l),rand_l.inverse())
+        deform_diff = torch.bmm(rand_l.inverse(),lattices - rand_l)
         loss_lattice = F.mse_loss(-grad_d/torch.det(input_lattice.detach()).view(-1,1,1), deform_diff)
         if self.i>100:
             if loss_coord>0.1:
@@ -1751,6 +1784,11 @@ class CSPEnergyMatching(BaseModule):
         return torch.cat(res_types)
 
 
+
+
+    def configure_gradient_clipping(self, optimizer, gradient_clip_val=None, gradient_clip_algorithm=None):
+        if self.grad_clip_val > 0:
+            self.clip_gradients(optimizer, gradient_clip_val=self.grad_clip_val, gradient_clip_algorithm="norm")
 
     def training_step(self, batch: Any, batch_idx: int) -> torch.Tensor:
         output_dict = self(batch)
