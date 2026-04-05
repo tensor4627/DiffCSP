@@ -1786,7 +1786,7 @@ class CSPEnergyMatching(BaseModule):
 
 
 
-    def configure_gradient_clipping(self, optimizer, gradient_clip_val=None, gradient_clip_algorithm=None):
+    def configure_gradient_clipping(self, optimizer, optimizer_idx=0, gradient_clip_val=None, gradient_clip_algorithm=None):
         if self.grad_clip_val > 0:
             self.clip_gradients(optimizer, gradient_clip_val=self.grad_clip_val, gradient_clip_algorithm="norm")
 
