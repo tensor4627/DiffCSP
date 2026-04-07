@@ -266,3 +266,30 @@ def soften_coordinates_piecewise(
 def smoothstep5(x: torch.Tensor) -> torch.Tensor:
     x = torch.clamp(x, 0.0, 1.0)
     return x * x * x * (10.0 + x * (-15.0 + 6.0 * x))
+
+
+def matrix_log(A):
+    # A 需要是对称正定矩阵（或至少可对角化且特征值为正）
+    eigenvalues, eigenvectors = torch.linalg.eigh(A)  # 对称矩阵用 eigh
+    return eigenvectors @ torch.diag_embed(eigenvalues.log()) @ eigenvectors.transpose(-2, -1)
+
+
+def extract_spd(lattices: torch.Tensor) -> torch.Tensor:
+    """
+    Extract the symmetric positive definite (SPD) factor from a batch of
+    lattice matrices via polar decomposition  M = Q @ P  →  return P.
+
+    P = sqrt(Mᵀ M)  is the unique SPD matrix satisfying M = Q @ P,
+    computed as  V @ diag(sqrt(λ)) @ Vᵀ  from the eigendecomposition of Mᵀ M.
+
+    Args:
+        lattices: (B, 3, 3)  – batch of invertible lattice matrices
+    Returns:
+        spd:      (B, 3, 3)  – symmetric positive definite polar factor
+    """
+    mtm = torch.bmm(lattices.mT, lattices)                    # (B,3,3), symmetric PD
+    eigvals, eigvecs = torch.linalg.eigh(mtm)                  # eigvals (B,3), eigvecs (B,3,3)
+    eigvals = eigvals.clamp(min=1e-10)                         # guard against numerical < 0
+    sqrt_diag = torch.diag_embed(eigvals.sqrt())               # (B,3,3)
+    spd = eigvecs @ sqrt_diag @ eigvecs.mT                     # (B,3,3)
+    return spd
