@@ -1588,8 +1588,16 @@ class CSPEnergyMatching(BaseModule):
 
         deform_1 = torch.bmm(rand_l.inverse(),lattices)
         log_deform_1 = matrix_log(deform_1)
+        nan_mask = torch.isnan(log_deform_1).any(dim=-1).any(dim=-1)  # (B,)
+        if nan_mask.any():
+            for i in nan_mask.nonzero(as_tuple=True)[0]:
+                print(f"[flow NaN] batch item {i.item()}")
+                print(f"  rand_l[i]    =\n{rand_l[i].detach().cpu()}")
+                print(f"  lattices[i]  =\n{lattices[i].detach().cpu()}")
+                print(f"  deform_1[i]  =\n{deform_1[i].detach().cpu()}")
+                print(f"  det(rand_l)  = {torch.linalg.det(rand_l[i]).item():.6e}")
+                print(f"  det(lattices)= {torch.linalg.det(lattices[i]).item():.6e}")
         log_deform_t = times.view(-1,1,1)* log_deform_1/max_step
-        print(log_deform_1,log_deform_t)
         deform_t = torch.matrix_exp(log_deform_t)
         input_lattice = torch.bmm(rand_l,deform_t)
         if self.keep_coords:
