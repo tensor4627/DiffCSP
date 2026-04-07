@@ -1610,7 +1610,7 @@ class CSPEnergyMatching(BaseModule):
                 print(f"  deform_1[i]  =\n{deform_1[i].detach().cpu()}")
                 print(f"  det(rand_l)  = {torch.linalg.det(rand_l[i]).item():.6e}")
                 print(f"  det(lattices)= {torch.linalg.det(lattices[i]).item():.6e}")
-                print(f"  inv(rand_l)= {(lattices[i].inverse()).item():.6e}")
+                print(f"  inv(rand_l)= {rand_l[i].inverse().detach().cpu()}")
         log_deform_t = times.view(-1,1,1)* log_deform_1/max_step
         deform_t = torch.matrix_exp(log_deform_t)
         input_lattice = torch.bmm(rand_l,deform_t)

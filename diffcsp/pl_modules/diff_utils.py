@@ -269,26 +269,30 @@ def smoothstep5(x: torch.Tensor) -> torch.Tensor:
 
 
 def matrix_log(A):
-    # A 需要是对称正定矩阵（或至少可对角化且特征值为正）
-    eigenvalues, eigenvectors = torch.linalg.eigh(A)  # 对称矩阵用 eigh
-    return eigenvectors @ torch.diag_embed(eigenvalues.log()) @ eigenvectors.transpose(-2, -1)
+    # A must be diagonalisable with positive real eigenvalues.
+    # eig is used instead of eigh because A may be non-symmetric
+    # (e.g. S1^{-1} @ S2 for SPD S1, S2).
+    eigenvalues, eigenvectors = torch.linalg.eig(A)
+    log_eigvals = torch.log(eigenvalues.real.clamp(min=1e-10)).to(eigenvectors.dtype)
+    return (eigenvectors @ torch.diag_embed(log_eigvals) @ torch.linalg.inv(eigenvectors)).real
 
 
 def extract_spd(lattices: torch.Tensor) -> torch.Tensor:
     """
     Extract the symmetric positive definite (SPD) factor from a batch of
-    lattice matrices via polar decomposition  M = Q @ P  →  return P.
+    lattice matrices (row-vector convention: cart = frac @ L).
 
-    P = sqrt(Mᵀ M)  is the unique SPD matrix satisfying M = Q @ P,
-    computed as  V @ diag(sqrt(λ)) @ Vᵀ  from the eigendecomposition of Mᵀ M.
+    Row-vector convention uses the LEFT polar decomposition  L = S @ Q,
+    where S = sqrt(L @ Lᵀ) is SPD and Q is orthogonal.
+    Computed as  V @ diag(sqrt(λ)) @ Vᵀ  from the eigendecomposition of L @ Lᵀ.
 
     Args:
-        lattices: (B, 3, 3)  – batch of invertible lattice matrices
+        lattices: (B, 3, 3)  – batch of invertible lattice matrices (rows = lattice vectors)
     Returns:
-        spd:      (B, 3, 3)  – symmetric positive definite polar factor
+        spd:      (B, 3, 3)  – symmetric positive definite left polar factor
     """
-    mtm = torch.bmm(lattices.mT, lattices)                    # (B,3,3), symmetric PD
-    eigvals, eigvecs = torch.linalg.eigh(mtm)                  # eigvals (B,3), eigvecs (B,3,3)
+    mmt = torch.bmm(lattices, lattices.mT)                     # (B,3,3), symmetric PD
+    eigvals, eigvecs = torch.linalg.eigh(mmt)                  # eigvals (B,3), eigvecs (B,3,3)
     eigvals = eigvals.clamp(min=1e-10)                         # guard against numerical < 0
     sqrt_diag = torch.diag_embed(eigvals.sqrt())               # (B,3,3)
     spd = eigvecs @ sqrt_diag @ eigvecs.mT                     # (B,3,3)
