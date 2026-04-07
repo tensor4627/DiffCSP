@@ -1618,11 +1618,12 @@ class CSPEnergyMatching(BaseModule):
                 pred_e = self.decoder(batch.atom_types, input_frac_coords, input_lattice, batch.num_atoms, batch.batch)
                 grad_f, grad_d = grad([pred_e.sum()], [input_frac_coords,log_deform_t],create_graph=True,allow_unused=True)
 
-        velocity_f = -grad_f        
-        loss_coord = F.mse_loss(velocity_f, self.wrapped_distance_vector(rand_x,frac_coords))
+        velocity_f = -grad_f
+        scaling_factor = torch.det(input_lattice.detach()).view(-1,1,1)
+        loss_coord = F.mse_loss(velocity_f/scaling_factor, self.wrapped_distance_vector(rand_x,frac_coords))
 
         deform_diff = log_deform_1
-        loss_lattice = F.mse_loss(-grad_d/torch.det(input_lattice.detach()).view(-1,1,1), deform_diff)
+        loss_lattice = F.mse_loss(-grad_d/scaling_factor, deform_diff)
         if self.i>100:
             if loss_coord>0.1:
                 self._debug_flow_spike(
