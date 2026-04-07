@@ -1589,6 +1589,7 @@ class CSPEnergyMatching(BaseModule):
         deform_1 = torch.bmm(rand_l.inverse(),lattices)
         log_deform_1 = matrix_log(deform_1)
         log_deform_t = times.view(-1,1,1)* log_deform_1/max_step
+        print(log_deform_1,log_deform_t)
         deform_t = torch.matrix_exp(log_deform_t)
         input_lattice = torch.bmm(rand_l,deform_t)
         if self.keep_coords:
@@ -1811,6 +1812,7 @@ class CSPEnergyMatching(BaseModule):
         )
 
         if loss.isnan():
+            self.zero_grad()
             return None
 
         return loss
