@@ -1601,16 +1601,6 @@ class CSPEnergyMatching(BaseModule):
 
         deform_1 = torch.bmm(rand_l.inverse(),lattices)
         log_deform_1 = matrix_log(deform_1)
-        nan_mask = torch.isnan(log_deform_1).any(dim=-1).any(dim=-1)  # (B,)
-        if nan_mask.any():
-            for i in nan_mask.nonzero(as_tuple=True)[0]:
-                print(f"[flow NaN] batch item {i.item()}")
-                print(f"  rand_l[i]    =\n{rand_l[i].detach().cpu()}")
-                print(f"  lattices[i]  =\n{lattices[i].detach().cpu()}")
-                print(f"  deform_1[i]  =\n{deform_1[i].detach().cpu()}")
-                print(f"  det(rand_l)  = {torch.linalg.det(rand_l[i]).item():.6e}")
-                print(f"  det(lattices)= {torch.linalg.det(lattices[i]).item():.6e}")
-                print(f"  inv(rand_l)= {rand_l[i].inverse().detach().cpu()}")
         log_deform_t = times.view(-1,1,1)* log_deform_1/max_step
         deform_t = torch.matrix_exp(log_deform_t)
         input_lattice = torch.bmm(rand_l,deform_t)
@@ -1621,18 +1611,14 @@ class CSPEnergyMatching(BaseModule):
             input_lattice = lattices
             deform_t = torch.eye(3, device=lattices.device).unsqueeze(0).repeat(batch_size,1,1)
 
-        
-
-        input_cart_coords = (input_frac_coords.reshape(-1,1,3)@input_lattice.repeat_interleave(batch.num_atoms,dim=0)).squeeze(1)
         with torch.enable_grad():
-            with RequiresGradContext(input_cart_coords, log_deform_t, requires_grad=True):
+            with RequiresGradContext(input_frac_coords, log_deform_t, requires_grad=True):
                 deform_t = torch.matrix_exp(log_deform_t)
-                context_input_lattice = torch.bmm(rand_l, deform_t)
-                context_input_frac_coords = (input_cart_coords.reshape(-1,1,3)@context_input_lattice.inverse().repeat_interleave(batch.num_atoms,dim=0)).squeeze(1)
-                pred_e = self.decoder(batch.atom_types, context_input_frac_coords, context_input_lattice, batch.num_atoms, batch.batch)
-                grad_x, grad_d = grad([pred_e.sum()], [input_cart_coords,log_deform_t],create_graph=True,allow_unused=True)
+                input_lattice = torch.bmm(rand_l,deform_t)
+                pred_e = self.decoder(batch.atom_types, input_frac_coords, input_lattice, batch.num_atoms, batch.batch)
+                grad_f, grad_d = grad([pred_e.sum()], [input_frac_coords,log_deform_t],create_graph=True,allow_unused=True)
 
-        velocity_f = (-grad_x.reshape(-1,1,3)@input_lattice.inverse().repeat_interleave(batch.num_atoms,dim=0)).squeeze(1)        
+        velocity_f = -grad_f        
         loss_coord = F.mse_loss(velocity_f, self.wrapped_distance_vector(rand_x,frac_coords))
 
         deform_diff = log_deform_1
