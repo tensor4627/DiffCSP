@@ -30,7 +30,7 @@ from diffcsp.common.data_utils import (
     frac_to_cart_coords, min_distance_sqr_pbc)
 MAX_ATOMIC_NUM=100
 
-from diffcsp.pl_modules.diff_utils import d_log_p_wrapped_normal,get_static_noise,soften_coordinates_piecewise,wrap_coordinates,matrix_log
+from diffcsp.pl_modules.diff_utils import d_log_p_wrapped_normal,get_static_noise,soften_coordinates_piecewise,wrap_coordinates,matrix_log,extract_spd
 from scipy.optimize import linear_sum_assignment
 
 import pdb
@@ -1458,6 +1458,16 @@ class CSPEnergyMatching(BaseModule):
                                                     cell_a[:,0],
                                                     cell_a[:,1],
                                                     cell_a[:,2])
+        elif mode == 20:
+            a_low,a_high = 2.4,12.8
+            alpha_low,alpha_high = 60,120
+            low = torch.tensor([a_low,a_low,a_low,alpha_low,alpha_low,alpha_low],device=cells.device,dtype=cells.dtype)
+            high = torch.tensor([a_high,a_high,a_high,alpha_high,alpha_high,alpha_high],device=cells.device,dtype=cells.dtype)
+            cells_noise_6d = low + (high - low) * torch.rand(size=(cells.shape[0],low.shape[0]),device=cells.device,dtype=cells.dtype)
+            cells_length = cells_noise_6d[:,:3]
+            cells_angle = cells_noise_6d[:,3:]
+            return lattice_params_to_matrix_torch(cells_length,cells_angle)
+        
         elif mode == 1:
             cells_noise = torch.rand_like(cells)
         elif mode == 0:
@@ -1585,6 +1595,9 @@ class CSPEnergyMatching(BaseModule):
         if self.use_ot:
             rand_x = self._ot_match_noise_to_coords(rand_x, frac_coords, batch.batch, batch.atom_types)
         input_frac_coords = rand_x + self.wrapped_distance_vector(rand_x,frac_coords)*(times.repeat_interleave(batch.num_atoms)[:, None])/max_step
+
+        rand_l = extract_spd(rand_l)
+        lattices = extract_spd(lattices)
 
         deform_1 = torch.bmm(rand_l.inverse(),lattices)
         log_deform_1 = matrix_log(deform_1)
