@@ -1466,7 +1466,7 @@ class CSPEnergyMatching(BaseModule):
             cells_noise_6d = low + (high - low) * torch.rand(size=(cells.shape[0],low.shape[0]),device=cells.device,dtype=cells.dtype)
             cells_length = cells_noise_6d[:,:3]
             cells_angle = cells_noise_6d[:,3:]
-            return lattice_params_to_matrix_torch(cells_length,cells_angle)
+            cells_noise = lattice_params_to_matrix_torch(cells_length,cells_angle)
         
         elif mode == 1:
             cells_noise = torch.rand_like(cells)
@@ -1610,6 +1610,7 @@ class CSPEnergyMatching(BaseModule):
                 print(f"  deform_1[i]  =\n{deform_1[i].detach().cpu()}")
                 print(f"  det(rand_l)  = {torch.linalg.det(rand_l[i]).item():.6e}")
                 print(f"  det(lattices)= {torch.linalg.det(lattices[i]).item():.6e}")
+                print(f"  inv(rand_l)= {(lattices[i].inverse()).item():.6e}")
         log_deform_t = times.view(-1,1,1)* log_deform_1/max_step
         deform_t = torch.matrix_exp(log_deform_t)
         input_lattice = torch.bmm(rand_l,deform_t)
