@@ -1604,13 +1604,16 @@ class CSPEnergyMatching(BaseModule):
         log_deform_t = times.view(-1,1,1)* log_deform_1/max_step
         deform_t = torch.matrix_exp(log_deform_t)
         input_lattice = torch.bmm(rand_l,deform_t)
+        target_f = self.wrapped_distance_vector(rand_x,frac_coords)
         if self.keep_coords:
             input_frac_coords = frac_coords
+            target_f = torch.zeros_like(target_f)
 
         if self.keep_lattice:
             input_lattice = lattices
             deform_t = torch.eye(3, device=lattices.device).unsqueeze(0).repeat(batch_size,1,1)
 
+        
         with torch.enable_grad():
             with RequiresGradContext(input_frac_coords, log_deform_t, requires_grad=True):
                 deform_t = torch.matrix_exp(log_deform_t)
@@ -1620,7 +1623,7 @@ class CSPEnergyMatching(BaseModule):
 
         velocity_f = -grad_f
         scaling_factor = torch.det(input_lattice.detach()).view(-1,1,1)
-        loss_coord = F.mse_loss(velocity_f/scaling_factor, self.wrapped_distance_vector(rand_x,frac_coords))
+        loss_coord = F.mse_loss(velocity_f/scaling_factor, target_f)
 
         deform_diff = log_deform_1
         loss_lattice = F.mse_loss(-grad_d/scaling_factor, deform_diff)
@@ -1635,7 +1638,7 @@ class CSPEnergyMatching(BaseModule):
                     rand_l=rand_l,
                     grad_f=velocity_f,
                     grad_l=grad_d,
-                    target_f=self.wrapped_distance_vector(rand_x,frac_coords),
+                    target_f=target_f,
                     loss_coord=loss_coord,
                 )
         loss = (
